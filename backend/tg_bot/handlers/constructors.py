@@ -9,7 +9,7 @@ from core.models import Constructor
 router = Router()
 
 
-def formal_constructors_list(constructors):
+def format_constructors_list(constructors):
     text = "Список команд формулы 1 сезон 2026: \n\n"
     for i, constructor in enumerate(constructors, 1):
         text += f"{i}. {constructor.name} - {constructor.nationality}\n"
@@ -24,7 +24,7 @@ async def get_constructors_list(message):
                 Constructor.objects.all())
         )()
 
-        text = formal_constructors_list(constructors)
+        text = format_constructors_list(constructors)
         await message.answer(text)
 
     except Exception as e:

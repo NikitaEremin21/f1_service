@@ -9,7 +9,7 @@ from core.models import Driver
 router = Router()
 
 
-def formal_drivers_list(drivers):
+def format_drivers_list(drivers):
     text = f"Список пилотов формулы 1 сезон 2026 \n\n"
     for driver in drivers:
         text += f"{driver.number} - {driver.first_name} {driver.last_name} - {driver.team}\n"
@@ -24,7 +24,7 @@ async def drivers_list(message):
                 Driver.objects.select_related('team').all()
             ))()
         
-        text = formal_drivers_list(drivers)
+        text = format_drivers_list(drivers)
         await message.answer(text)
         
     except Exception as e:

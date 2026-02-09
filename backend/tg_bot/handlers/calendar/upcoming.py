@@ -1,0 +1,27 @@
+from aiogram import Router
+from aiogram.filters import Command
+from asgiref.sync import sync_to_async
+from django.utils import timezone
+import loguru
+from core.models import GrandPrix
+from .utils import get_calendar_message
+
+
+router = Router()
+
+
+@router.message(Command("upcoming"))
+async def upcoming_function(message):
+    try:
+        data = await sync_to_async(
+            lambda: list(
+                GrandPrix.objects.select_related('circuit')
+                .filter(date__gte=timezone.now().date())
+                .order_by('round').all()
+            )
+        )()
+        calendar_text = get_calendar_message(data)
+        await message.answer(calendar_text)
+    except Exception as e:
+        loguru.logger.error(f'Ошибка при получении календаря: {e}')
+        await message.answer('Ошибка при получении календаря')

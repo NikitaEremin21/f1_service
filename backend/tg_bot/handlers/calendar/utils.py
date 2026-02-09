@@ -1,12 +1,4 @@
-from aiogram import Router
-from aiogram.filters import Command
-from asgiref.sync import sync_to_async
-from datetime import datetime, timedelta
-import loguru
-from core.models import GrandPrix
-
-
-router = Router()
+from datetime import timedelta
 
 
 def format_date(date):
@@ -34,18 +26,3 @@ def get_calendar_message(data):
                     f"{gp.round}. {gp.name}\n{gp.circuit.name} ({date})\n\n"
                 )
     return text
-
-
-@router.message(Command("calendar"))
-async def calendar_function(message):
-    try:
-        data = await sync_to_async(
-            lambda: list(
-                GrandPrix.objects.select_related('circuit').order_by('round').all()
-            )
-        )()
-        calendar_text = get_calendar_message(data)
-        await message.answer(calendar_text)
-    except Exception as e:
-        loguru.logger.error(f'Ошибка при получении календаря: {e}')
-        await message.answer('Ошибка при получении календаря')
