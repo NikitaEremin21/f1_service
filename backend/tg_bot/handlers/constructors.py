@@ -3,27 +3,17 @@ from aiogram.filters import Command
 from asgiref.sync import sync_to_async
 import loguru
 
-from core.models import Constructor
+from services.constructor_service import (get_constructors_list,
+                                          format_constructors_list)
 
 
 router = Router()
 
 
-def format_constructors_list(constructors):
-    text = "Список команд формулы 1 сезон 2026: \n\n"
-    for i, constructor in enumerate(constructors, 1):
-        text += f"{i}. {constructor.name} - {constructor.nationality}\n"
-    return text
-
-
 @router.message(Command("constructors"))
-async def get_constructors_list(message):
+async def constructors_list(message):
     try:
-        constructors = await sync_to_async(
-            lambda: list(
-                Constructor.objects.all())
-        )()
-
+        constructors = await sync_to_async(get_constructors_list)()
         text = format_constructors_list(constructors)
         await message.answer(text)
 
