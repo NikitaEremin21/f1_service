@@ -43,12 +43,25 @@ class GrandPrix(models.Model):
     circuit = models.ForeignKey('Circuit', on_delete=models.CASCADE)
     round = models.IntegerField()
     date = models.DateField()
+    year = models.IntegerField()
     has_sprint = models.BooleanField(default=False)
 
+    fp1_datetime = models.DateTimeField(null=True, blank=True)
+    fp2_datetime = models.DateTimeField(null=True, blank=True)
+    fp3_datetime = models.DateTimeField(null=True, blank=True)
+    sprint_qualifying_datetime = models.DateTimeField(null=True, blank=True)
+    sprint_datetime = models.DateTimeField(null=True, blank=True)
+    qualifying_datetime = models.DateTimeField(null=True, blank=True)
+    race_datetime = models.DateTimeField(null=True, blank=True)
+
     class Meta:
-        ordering = ['round']
+        ordering = ['year', 'round']
         verbose_name = 'Гран-при'
         verbose_name_plural = 'Гран-при'
+
+        indexes = [
+            models.Index(fields=['year', 'round']),
+        ]
 
     def __str__(self):
         if self.has_sprint:
