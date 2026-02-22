@@ -68,3 +68,16 @@ class GrandPrix(models.Model):
             return f"{self.round}. {self.name} ({self.circuit.name}) - спринт"
         else:
             return f"{self.round}. {self.name} ({self.circuit.name})"
+        
+
+class User(models.Model):
+    telegram_id = models.BigIntegerField(unique=True)
+    username = models.CharField(max_length=100, blank=True, null=True)
+    first_name = models.CharField(max_length=100, blank=True, null=True)
+    timezone = models.CharField(max_length=50, default='UTC')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
