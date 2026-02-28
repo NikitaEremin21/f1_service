@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
 from states.registration import Registration
+from keyboards.reply import get_main_menu
 from services.user_service import (
     create_user,
     set_timezone,
@@ -38,6 +39,9 @@ async def user_city_handler(message, state):
             'К сожалению, я не знаю такого города. Пожалуйста, попробуйте еще раз.'
         )
         return
-    await message.answer(f'Часовой пояс установлен: {timezone}')
+    await message.answer(
+        f'Часовой пояс установлен: {timezone}',
+        reply_markup=get_main_menu(),
+    )
 
     await state.clear()
