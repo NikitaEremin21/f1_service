@@ -9,6 +9,7 @@ class MainMenuButtons:
     NEXT_RACE = "Следующая гонка"
     DRIVERS_LIST = "Список пилотов"
     TEAMS_LIST = "Список команд"
+    RESULTS = "Результаты"
     SETTINGS = "Настройки"
 
     
@@ -19,9 +20,10 @@ def get_main_menu():
     builder.add(KeyboardButton(text=MainMenuButtons.NEXT_RACE))
     builder.add(KeyboardButton(text=MainMenuButtons.DRIVERS_LIST))
     builder.add(KeyboardButton(text=MainMenuButtons.TEAMS_LIST))
+    builder.add(KeyboardButton(text=MainMenuButtons.RESULTS))
     builder.add(KeyboardButton(text=MainMenuButtons.SETTINGS))
 
-    builder.adjust(2, 2, 2)
+    builder.adjust(2, 2, 2, 1)
 
     return builder.as_markup(resize_keyboard=True)
 
