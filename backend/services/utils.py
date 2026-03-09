@@ -8,6 +8,60 @@ geolocator = Nominatim(user_agent="f1_service")
 tf = TimezoneFinder()
 
 
+GP_FLAGS = {
+    "Australian Grand Prix": "🇦🇺",
+    "Chinese Grand Prix": "🇨🇳",
+    "Japanese Grand Prix": "🇯🇵",
+    "Bahrain Grand Prix": "🇧🇭",
+    "Saudi Arabian Grand Prix": "🇸🇦",
+    "Miami Grand Prix": "🇺🇸",
+    "Canadian Grand Prix": "🇨🇦",
+    "Monaco Grand Prix": "🇲🇨",
+    "Barcelona‑Catalunya Grand Prix": "🇪🇸",
+    "Austrian Grand Prix": "🇦🇹",
+    "British Grand Prix": "🇬🇧",
+    "Belgian Grand Prix": "🇧🇪",
+    "Hungarian Grand Prix": "🇭🇺",
+    "Dutch Grand Prix": "🇳🇱",
+    "Italian Grand Prix": "🇮🇹",
+    "Spanish Grand Prix": "🇪🇸",
+    "Azerbaijan Grand Prix": "🇦🇿",
+    "Singapore Grand Prix": "🇸🇬",
+    "United States Grand Prix": "🇺🇸",
+    "Mexico City Grand Prix": "🇲🇽",
+    "São Paulo Grand Prix": "🇧🇷",
+    "Las Vegas Grand Prix": "🇺🇸",
+    "Qatar Grand Prix": "🇶🇦",
+    "Abu Dhabi Grand Prix": "🇦🇪",
+}
+
+
+DRIVER_FLAGS = {
+    "NOR": "🇬🇧",
+    "PIA": "🇦🇺",
+    "VER": "🇳🇱",
+    "HAD": "🇫🇷",
+    "RUS": "🇬🇧",
+    "ANT": "🇮🇹", 
+    "HAM": "🇬🇧",
+    "LEC": "🇲🇨",
+    "SAI": "🇪🇸",
+    "ALB": "🇹🇭",
+    "LAW": "🇳🇿",
+    "LIN": "🇬🇧",
+    "ALO": "🇪🇸",
+    "STR": "🇨🇦",
+    "OCO": "🇫🇷",
+    "BEA": "🇬🇧",
+    "HUL": "🇩🇪",
+    "BOR": "🇧🇷",
+    "GAS": "🇫🇷",
+    "COL": "🇦🇷",
+    "PER": "🇲🇽",
+    "BOT": "🇫🇮",    
+}
+
+
 def get_timezone_by_city(city):
     city = city.strip().lower()
     try:
