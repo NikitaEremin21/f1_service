@@ -34,10 +34,9 @@ def load_session(race, session_field):
         session = fastf1.get_session(
             race.year,
             race.round,
-            session_code
-        )
+            session_code,
+        )        
         session.load()
-
         return session
     except Exception as e:
         logger.error(

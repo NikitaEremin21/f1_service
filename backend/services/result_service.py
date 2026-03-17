@@ -1,10 +1,12 @@
-from core.models import GrandPrix
+from core.models import GrandPrix, Driver
 from services.fastf1_service import load_session
 from math import isnan
+from services.driver_service import get_drivers_list
 from services.utils import (
     GP_FLAGS,
     DRIVER_FLAGS
 )
+from services.openf1_service import get_sessions
 import pandas as pd
 
 PRACTICE_SESSIONS = [
@@ -39,6 +41,18 @@ def format_race_time(td):
     return f"{hours}:{minutes:02d}:{seconds:06.3f}"
 
 
+def format_qualifying_time(seconds):
+    """
+    Форматирует время для квалификации 
+    """
+    if seconds is None:
+        return "No time"
+    
+    minutes = int(seconds // 60)
+    secs = seconds % 60
+    return f"{minutes}:{secs:06.3f}"
+
+
 def get_format_race_message(session, race):
     """
     Формирует результаты гонки / спринта
@@ -68,12 +82,15 @@ def get_format_race_message(session, race):
 
             elif "DNF" in status or "Retired" in status:
                 time_display = "DNF"
+                pos = "NC"
             
             elif "DSQ" in status:
                 time_display = "DSQ"
+                pos = "NC"
 
             elif "Did not start" in status:
                 time_display = "DNS"
+                pos = "NC"
 
             elif not pd.isna(time):
                 time_display = f"+{format_timedelta(time)}"
@@ -89,11 +106,108 @@ def get_format_race_message(session, race):
     return text
 
 
+def get_format_qualifying_message(session, race, session_field):
+    """
+    Формирует результаты квалификации
+    """
+    race_name = race.name
+    
+    drivers = get_drivers_list()
+    
+    results = {r['driver_number']: r for r in session}
+    
+    pole_time = None
+    pole_driver = None
+    for result in session:
+        if result['position'] == 1:
+            if len(result['duration']) >= 3 and result['duration'][2] is not None:
+                pole_time = result['duration'][2]
+                pole_driver = result['driver_number']
+                break
+    
+    driver_data = []
+
+    for driver in drivers:
+        driver_number = driver.number
+        driver_code = driver.code
+        team_name = driver.team.name if driver.team else "-"
+        
+        result = results.get(driver_number)
+        
+        if result:
+            durations = result['duration']
+            pos = result['position']
+
+            if pos <= 10:
+                segment = "Q3"
+                if len(durations) >= 3 and durations[2] is not None:
+                    display_time = durations[2]
+                else:
+                    display_time = None
+            elif pos <= 16:
+                segment = "Q2"
+                if len(durations) >= 2 and durations[1] is not None:
+                    display_time = durations[1]
+                else:
+                    display_time = None
+            else:
+                segment = "Q1"
+                if durations[0] is not None:
+                    display_time = durations[0]
+                else:
+                    display_time = None
+            
+            if display_time is not None:
+                time_display = format_qualifying_time(display_time)
+                if pole_time is not None and driver_number != pole_driver:
+                    gap = display_time - pole_time
+                    gap_display = f"+{gap:.3f}"
+                else:
+                    gap_display = "-"
+            else:
+                time_display = "No time"
+                gap_display = "-"
+        else:
+            time_display = "No time"
+            segment = "Q1"
+            gap_display = "-"
+            pos = 999
+        
+        driver_data.append({
+            "pos": pos,
+            "driver": driver_code,
+            "team": team_name,
+            "flag": DRIVER_FLAGS.get(driver_code, ""),
+            "segment": segment,
+            "time": time_display,
+            "gap": gap_display,
+        })
+    
+    driver_data.sort(key=lambda x: x["pos"])
+    
+    text = f"{GP_FLAGS.get(race_name, '')} {race_name} {GP_FLAGS.get(race_name, '')}\n\n"
+    text += "<pre>"
+    text += f"{'Pos':<3} {'Driver':<6} {'Team':<12} {'Seg':<3} {'Time':<8} {'Gap':<6}\n"
+    text += "-" * 43 + "\n"
+    
+    for r in driver_data:
+        pos_display = "-" if r["pos"] == 999 else str(r["pos"])
+        text += f"{pos_display:>2}. {r['flag']} {r['driver']:<3} {r['team']:<12} {r['segment']:<3} {r['time']:>8} {r['gap']:>6}\n"
+    
+    text += "</pre>"
+    return text
+
+
 def get_session_results(round, session_field):
     """
     Загружает данные сессии и возвращает готовый текст с результатами
     """
     race = GrandPrix.objects.get(round=round)
-    session = load_session(race, session_field)
-
-    return get_format_race_message(session, race)
+    
+    if session_field == "qualifying_datetime" or session_field == "sprint_qualifying_datetime":
+        session = get_sessions(race, session_field)
+        return get_format_qualifying_message(session, race, session_field)
+    
+    if session_field == "race_datetime" or session_field == "sprint_datetime":
+        session = load_session(race, session_field)
+        return get_format_race_message(session, race)
