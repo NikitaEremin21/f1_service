@@ -4,17 +4,6 @@ import json
 from loguru import logger
 
 
-SESSION_MAP = {
-    "fp1_datetime": "Practice 1",
-    "fp2_datetime": "Practice 2",
-    "fp3_datetime": "Practice 3",
-    "sprint_qualifying_datetime": "Sprint Qualifying",
-    "sprint_datetime": "Sprint",
-    "qualifying_datetime": "Qualifying",
-    "race_datetime": "Race"
-}
-
-
 def get_meeting_key(meeting_name, year):
     try:
         response = urlopen(f'https://api.openf1.org/v1/meetings?year={year}&meeting_name={quote(meeting_name)}')
@@ -53,20 +42,24 @@ def get_results(session_key):
             f"Ошибка при получении session_key"
         )
         raise e
+    
 
-
-def get_sessions(race, session_field):
+def get_driver(session_key):
     try:
-        meeting_name = race.name
-        session_name = SESSION_MAP.get(session_field)
-        year = race.year
+        response = urlopen(f"https://api.openf1.org/v1/drivers?"
+                           f"session_key={session_key}")
+        data = json.loads(response.read().decode('utf-8'))
+        return data
+    except Exception as e:
+        logger.warning(
+            f"Ошибка при получении session_key"
+        )
+        raise e
 
-        meeting_key = get_meeting_key(meeting_name, year)
 
-        session_key = get_session_key(meeting_key, session_name, year)
-
+def get_sessions(session_key):
+    try:
         results = get_results(session_key)
-
         return results
     except Exception as e:
         logger.warning(

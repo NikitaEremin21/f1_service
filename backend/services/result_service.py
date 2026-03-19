@@ -6,14 +6,31 @@ from services.utils import (
     GP_FLAGS,
     DRIVER_FLAGS
 )
-from services.openf1_service import get_sessions
+from services.openf1_service import (
+    get_sessions,
+    get_meeting_key,
+    get_session_key,
+    get_driver
+)
 import pandas as pd
+from loguru import logger
 
 PRACTICE_SESSIONS = [
     "fp1_datetime",
     "fp2_datetime",
     "fp3_datetime"
 ]
+
+
+SESSION_MAP = {
+    "fp1_datetime": "Practice 1",
+    "fp2_datetime": "Practice 2",
+    "fp3_datetime": "Practice 3",
+    "sprint_qualifying_datetime": "Sprint Qualifying",
+    "sprint_datetime": "Sprint",
+    "qualifying_datetime": "Qualifying",
+    "race_datetime": "Race"
+}
 
 
 def format_timedelta(td):
@@ -198,14 +215,79 @@ def get_format_qualifying_message(session, race, session_field):
     return text
 
 
+def get_format_practice_message(race, session_key, session_field):
+    """
+    Формирует результаты свободных практик
+    """
+    race_name = race.name
+    practice_name = SESSION_MAP.get(session_field)
+    results = get_sessions(session_key)
+    drivers_list = get_drivers_list()
+    drivers = {driver.number: driver for driver in drivers_list}
+    drivers_info_list = get_driver(session_key)
+    drivers_info = {driver["driver_number"]: driver for driver in drivers_info_list}
+
+    text = f"{GP_FLAGS.get(race_name, '')} {race_name} {GP_FLAGS.get(race_name, '')}\n\n"
+    text += f"{practice_name}"
+    text += "<pre>"
+    text += f"{'Pos':<3} {'Driver':<6} {'Team':<12} {'Time':<8} {'Gap':<6} {'Laps':<4}\n"
+    text += "-" * 45 + "\n"
+
+    for result in results:
+        position = result["position"]
+        driver_number = result["driver_number"]
+        duration = result["duration"]
+        gap = result["gap_to_leader"]
+        laps = result["number_of_laps"]
+        
+
+        if driver_number in drivers:
+            driver = drivers[driver_number]
+            driver_code = driver.code
+            team_name = driver.team.name if driver.team else "-"
+            flag = DRIVER_FLAGS.get(driver_code, "")
+        else:
+            driver = drivers_info.get(driver_number)
+            driver_code = driver["name_acronym"]
+            team_name = driver["team_name"]
+            flag = DRIVER_FLAGS.get(driver_code, "")
+        
+        if duration is None:
+            time_display = "No time"
+            gap_display = "-"
+        else:
+            time_display = format_qualifying_time(duration)
+            
+            if position == 1 or gap == 0:
+                gap_display = "-"
+            else:
+                gap_display = f"+{gap:.3f}"
+
+        text += f"{position:>2}. {flag:} {driver_code:<3} {team_name:<12} {time_display:>8} {gap_display:>6} {laps:>4}\n"
+        text += "-" * 45 + "\n"
+
+    text += "</pre>"
+
+    return text
+
+
 def get_session_results(round, session_field):
     """
     Загружает данные сессии и возвращает готовый текст с результатами
     """
     race = GrandPrix.objects.get(round=round)
+    meeting_name = race.name
+    session_name = SESSION_MAP.get(session_field)
+    year = race.year
+
+    meeting_key = get_meeting_key(meeting_name, year)
+    session_key = get_session_key(meeting_key, session_name, year)
+
+    if session_field in PRACTICE_SESSIONS:
+        return get_format_practice_message(race, session_key, session_field)
     
     if session_field == "qualifying_datetime" or session_field == "sprint_qualifying_datetime":
-        session = get_sessions(race, session_field)
+        session = get_sessions(session_key)
         return get_format_qualifying_message(session, race, session_field)
     
     if session_field == "race_datetime" or session_field == "sprint_datetime":
