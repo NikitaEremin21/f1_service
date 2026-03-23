@@ -62,6 +62,21 @@ DRIVER_FLAGS = {
 }
 
 
+TEAMS_FLAGS = {
+    "Mercedes": "🇩🇪",
+    "Ferrari": "🇮🇹",
+    "Red Bull Racing": "🇦🇹",
+    "McLaren": "🇬🇧",
+    "Aston Martin": "🇬🇧",
+    "Alpine": "🇫🇷",
+    "Haas F1 Team": "🇺🇸",
+    "Williams": "🇬🇧",
+    "Audi": "🇩🇪",
+    "Racing Bulls": "🇮🇹",
+    "Cadillac": "🇺🇸",
+}
+
+
 def get_timezone_by_city(city):
     city = city.strip().lower()
     try:

@@ -79,3 +79,16 @@ def get_championship_drivers(session_key):
             f"Ошибка при загрузке турнирной таблицы пилотов из OpenF1"
         )
         raise e
+    
+
+def get_championship_teams(session_key):
+    try:
+        response = urlopen(f"https://api.openf1.org/v1/championship_teams?"
+                           f"session_key={session_key}")
+        data = json.loads(response.read().decode('utf-8'))
+        return data
+    except Exception as e:
+        logger.warning(
+            f"Ошибка при загрузке кубка конструкторов из OpenF1"
+        )
+        raise e

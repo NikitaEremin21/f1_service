@@ -3,11 +3,13 @@ from services.openf1_service import (
     get_meeting_key,
     get_session_key,
     get_championship_drivers,
+    get_championship_teams,
 )
 from services.utils import (
     DRIVER_FLAGS
 )
 from services.race_service import get_last_completed_race
+from services.utils import TEAMS_FLAGS
 
 
 def get_format_championship_drivers_message(race, championship_drivers):
@@ -20,7 +22,7 @@ def get_format_championship_drivers_message(race, championship_drivers):
 
     text = f"Чемпионат формулы 1 {race.year}\n\n"
     text += "<pre>" 
-    text += f"{'Pos':<3} {'Driver':<19} {'Team':<12} {'Pts':<3}\n"
+    text += f"{'Pos':<3} {'Driver':<20} {'Team':<12} {'Pts':<3}\n"
     text += "-" * 41 + "\n"
     for dr in championship_drivers:
         position = dr["position_current"]
@@ -50,3 +52,39 @@ def get_drivers_standings():
     championship_drivers = get_championship_drivers(session_key)
     drivers_message = get_format_championship_drivers_message(race, championship_drivers)
     return drivers_message
+
+
+def get_format_championship_teams_message(race, championship_drivers):
+    """
+    Формирует таблицу чеспионата пилотов
+    """
+    text = f"Чемпионат формулы 1 {race.year}\n\n"
+    text += "<pre>"
+    text += f"{'Pos':<3} {'Team':<18} {'Pts':<3}\n"
+    text += "-" * 26 + "\n"
+
+    for team in championship_drivers:
+        position = team["position_current"]
+        team_name = team["team_name"]
+        points_raw = team["points_current"]
+        flag = TEAMS_FLAGS.get(team_name, "")
+        points = int(points_raw) if points_raw is not None else 0
+
+        text += f"{position:>2}. {flag} {team_name:<15} {points:>3}\n"
+
+    text += "</pre>" 
+    return text
+
+def get_teams_standings():
+    """
+    Загружает кубок конструкторов
+    """
+    race, session_name = get_last_completed_race()
+    race_name = race.name
+    year = race.year
+    meeting_key = get_meeting_key(race_name, year)
+    session_key = get_session_key(meeting_key, session_name, year)
+    championship_teams = get_championship_teams(session_key)
+    teams_message = get_format_championship_teams_message(race, championship_teams)
+    return teams_message
+
