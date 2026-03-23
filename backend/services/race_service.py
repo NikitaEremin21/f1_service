@@ -1,10 +1,14 @@
 from django.utils import timezone
 from datetime import timedelta
 from core.models import GrandPrix
+from loguru import logger
 
 
 PRE_WEEKEND_WINDOW = timedelta(hours=12)
 RACE_ACTIVE_WINDOW = timedelta(hours=4)
+
+SPRINT_DURATION_HOURS = 2
+RACE_DURATION_HOURS = 4
 
 
 def get_relevant_race():
@@ -44,3 +48,29 @@ def get_relevant_race():
         return last_race
     
     
+def get_last_completed_race():
+    """
+    Возвращает последний Гран-при, у которого уже были начислены очки
+    """
+    now = timezone.now()
+    
+    next_race = GrandPrix.objects.filter(
+        race_datetime__gte=now - timedelta(hours=RACE_DURATION_HOURS)
+    ).order_by("race_datetime").first()
+
+    last_race = GrandPrix.objects.filter(
+        race_datetime__lt=now - timedelta(hours=RACE_DURATION_HOURS)
+    ).order_by("-race_datetime").first()
+    
+    if not next_race:
+        return last_race, "Race"
+    
+    if next_race.has_sprint and next_race.sprint_datetime:
+        sprint_end = next_race.sprint_datetime + timedelta(hours=SPRINT_DURATION_HOURS)
+        if now >= sprint_end:
+            return next_race, "Sprint"
+
+    if now >= next_race.race_datetime + timedelta(hours=RACE_DURATION_HOURS):
+        return next_race, "Race"
+    
+    return last_race, "Race"

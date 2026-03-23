@@ -7,7 +7,7 @@ from services.openf1_service import (
 from services.utils import (
     DRIVER_FLAGS
 )
-from services.race_service import get_relevant_race
+from services.race_service import get_last_completed_race
 
 
 def get_format_championship_drivers_message(race, championship_drivers):
@@ -25,7 +25,8 @@ def get_format_championship_drivers_message(race, championship_drivers):
     for dr in championship_drivers:
         position = dr["position_current"]
         driver_number = dr["driver_number"]
-        points = int(dr["points_current"])
+        points_raw = dr["points_current"]
+        points = int(points_raw) if points_raw is not None else 0
         driver = drivers.get(driver_number)
         driver_code = driver.code
         first_name = driver.first_name
@@ -41,11 +42,11 @@ def get_drivers_standings():
     """
     Загружает зачет пилотов
     """
-    race = get_relevant_race()
+    race, session_name = get_last_completed_race()
     race_name = race.name
     year = race.year
     meeting_key = get_meeting_key(race_name, year)
-    session_key = get_session_key(meeting_key, "Race", year)
+    session_key = get_session_key(meeting_key, session_name, year)
     championship_drivers = get_championship_drivers(session_key)
     drivers_message = get_format_championship_drivers_message(race, championship_drivers)
     return drivers_message
