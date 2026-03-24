@@ -5,6 +5,9 @@ from loguru import logger
 
 
 def get_meeting_key(meeting_name, year):
+    """
+    Получает meeting_key
+    """
     try:
         response = urlopen(f'https://api.openf1.org/v1/meetings?year={year}&meeting_name={quote(meeting_name)}')
         data = json.loads(response.read().decode('utf-8'))
@@ -18,6 +21,9 @@ def get_meeting_key(meeting_name, year):
     
 
 def get_session_key(meeting_key, session_name, year):
+    """
+    Получает session_key
+    """
     try:
         response = urlopen(f'https://api.openf1.org/v1/sessions?'
                            f'meeting_key={meeting_key}&session_name={quote(session_name)}&year={year}')
@@ -32,6 +38,9 @@ def get_session_key(meeting_key, session_name, year):
     
 
 def get_results(session_key):
+    """
+    Получает результаты сессии
+    """
     try:
         response = urlopen(f'https://api.openf1.org/v1/session_result?'
                            f'session_key={session_key}&position%3C=22')
@@ -45,6 +54,9 @@ def get_results(session_key):
     
 
 def get_driver(session_key):
+    """
+    Получает информацию о пилотах, участвовавших в сессии.
+    """
     try:
         response = urlopen(f"https://api.openf1.org/v1/drivers?"
                            f"session_key={session_key}")
@@ -59,6 +71,9 @@ def get_driver(session_key):
     
 
 def get_championship_drivers(session_key):
+    """
+    Получает актуальный зачёт пилотов (чемпионат)
+    """
     try:
         response = urlopen(f"https://api.openf1.org/v1/championship_drivers?"
                            f"session_key={session_key}")
@@ -72,6 +87,9 @@ def get_championship_drivers(session_key):
     
 
 def get_championship_teams(session_key):
+    """
+    Получает актуальный зачёт конструкторов (кубок)
+    """
     try:
         response = urlopen(f"https://api.openf1.org/v1/championship_teams?"
                            f"session_key={session_key}")
