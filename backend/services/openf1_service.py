@@ -56,16 +56,6 @@ def get_driver(session_key):
         )
         raise e
 
-
-def get_sessions(session_key):
-    try:
-        results = get_results(session_key)
-        return results
-    except Exception as e:
-        logger.warning(
-            f"Ошибка при загрузке session_key из OpenF1"
-        )
-        raise e
     
 
 def get_championship_drivers(session_key):

@@ -7,13 +7,13 @@ from services.utils import (
     DRIVER_FLAGS
 )
 from services.openf1_service import (
-    get_sessions,
+    get_results,
     get_meeting_key,
     get_session_key,
     get_driver
 )
 import pandas as pd
-from loguru import logger
+
 
 PRACTICE_SESSIONS = [
     "fp1_datetime",
@@ -221,7 +221,7 @@ def get_format_practice_message(race, session_key, session_field):
     """
     race_name = race.name
     practice_name = SESSION_MAP.get(session_field)
-    results = get_sessions(session_key)
+    results = get_results(session_key)
     drivers_list = get_drivers_list()
     drivers = {driver.number: driver for driver in drivers_list}
     drivers_info_list = get_driver(session_key)
@@ -287,7 +287,7 @@ def get_session_results(round, session_field):
         return get_format_practice_message(race, session_key, session_field)
     
     if session_field == "qualifying_datetime" or session_field == "sprint_qualifying_datetime":
-        session = get_sessions(session_key)
+        session = get_results(session_key)
         return get_format_qualifying_message(session, race, session_field)
     
     if session_field == "race_datetime" or session_field == "sprint_datetime":
