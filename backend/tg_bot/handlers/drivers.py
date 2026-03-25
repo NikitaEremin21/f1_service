@@ -22,7 +22,7 @@ async def drivers_list(message):
         drivers = await sync_to_async(get_drivers_list)()
         text = format_drivers_list(drivers)
         await message.answer(
-            text,
+            text, parse_mode="HTML",
             reply_markup=get_main_menu()
         )
         

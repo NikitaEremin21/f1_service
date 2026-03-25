@@ -22,7 +22,7 @@ async def constructors_list(message):
         constructors = await sync_to_async(get_constructors_list)()
         text = format_constructors_list(constructors)
         await message.answer(
-            text,
+            text, parse_mode="HTML",
             reply_markup=get_main_menu()
         )
 
