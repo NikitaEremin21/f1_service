@@ -4,7 +4,7 @@ from math import isnan
 from services.driver_service import get_drivers_list
 from services.utils import (
     GP_FLAGS,
-    DRIVER_FLAGS
+    DRIVER_FLAGS,
 )
 from services.openf1_service import (
     get_results,
@@ -13,6 +13,7 @@ from services.openf1_service import (
     get_driver
 )
 import pandas as pd
+from loguru import logger
 
 
 PRACTICE_SESSIONS = [
@@ -31,6 +32,18 @@ SESSION_MAP = {
     "qualifying_datetime": "Qualifying",
     "race_datetime": "Race"
 }
+
+def format_race_time_seconds(seconds):
+    """
+    Форматирует время гонки из секунд в "1:33:15.607"
+    """
+    if seconds is None:
+        return "No time"
+    
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = seconds % 60
+    return f"{hours}:{minutes:02d}:{secs:06.3f}"
 
 
 def format_timedelta(td):
@@ -70,9 +83,9 @@ def format_qualifying_time(seconds):
     return f"{minutes}:{secs:06.3f}"
 
 
-def get_format_race_message(session, race):
+def get_format_race_message_fast_f1(session, race):
     """
-    Формирует результаты гонки / спринта
+    Формирует результаты гонки / спринта, полученные из FastF1
     """
     race_name = race.name
     results = session.results
@@ -271,6 +284,85 @@ def get_format_practice_message(race, session_key, session_field):
     return text
 
 
+def get_format_race_message(session, race, session_field):
+    """
+    Форматирует результаты спринта / гонки
+    """
+    race_name = race.name
+    session_name = SESSION_MAP.get(session_field)
+
+    drivers_list = get_drivers_list()
+
+    results = {r['driver_number']: r for r in session}
+
+    driver_data = []
+
+    for driver in drivers_list:
+        driver_number = driver.number
+        driver_code = driver.code
+        team_name = driver.team.name if driver.team else "-"
+        flag = DRIVER_FLAGS.get(driver_code, "")
+
+        result = results.get(driver_number)
+
+        if result:
+            position = result.get("position")
+            points = result.get("points")
+            gap = result.get("gap_to_leader")
+            laps = result.get("number_of_laps", 0)
+
+            if position == 1:
+                gap_display = "-"
+            elif isinstance(gap, (int, float)):
+                gap_display = f"+{gap:.3f}"
+            else:
+                gap_display = str(gap)
+            
+            duration = result.get("duration")
+            if duration and position == 1:
+                time_display = format_race_time_seconds(duration)
+            else:
+                time_display = gap_display
+
+            driver_data.append({
+                "pos": position,
+                "driver": driver_code,
+                "team": team_name,
+                "flag": flag,
+                "points": int(points),
+                "time": time_display,
+                "gap": gap_display,
+                "laps": laps,
+            })
+        else:
+            driver_data.append({
+                "pos": 999,
+                "driver": driver_code,
+                "team": team_name,
+                "flag": flag,
+                "points": 0,
+                "time": "DNF",
+                "gap": "-",
+                "laps": 0,
+            })
+
+    driver_data.sort(key=lambda x: x["pos"])
+
+    text = f"{GP_FLAGS.get(race_name)} {race_name} {GP_FLAGS.get(race_name)}\n\n"
+    text += f"{session_name}\n"
+    text += "<pre>"    
+    text += f"{'Pos':<3} {'Driver':<6} {'Team':<12}  {'Pts':<3} {'Time':<11}\n"
+    text += "-" * 40 + "\n"
+
+    for r in driver_data:
+        pos_display = "NC" if r["pos"] == 999 else str(r["pos"])
+        text += f"{pos_display:>2}. {r['flag']} {r['driver']:<3} {r['team']:<12} {r['points']:>3}  {r['time']:>11}\n"
+
+    text += "</pre>"
+    
+    return text
+
+
 def get_session_results(round, session_field):
     """
     Загружает данные сессии и возвращает готовый текст с результатами
@@ -291,5 +383,5 @@ def get_session_results(round, session_field):
         return get_format_qualifying_message(session, race, session_field)
     
     if session_field == "race_datetime" or session_field == "sprint_datetime":
-        session = load_session(race, session_field)
-        return get_format_race_message(session, race)
+        session = get_results(session_key)
+        return get_format_race_message(session, race, session_field)
