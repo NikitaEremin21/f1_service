@@ -3,7 +3,10 @@ from django.utils import timezone
 from core.models import GrandPrix
 from zoneinfo import ZoneInfo
 from collections import defaultdict
-from services.utils import format_date
+from services.utils import (
+    format_date,
+    GP_FLAGS,
+)
 from services.user_service import get_user_by_telegram_id
 
 
@@ -25,13 +28,14 @@ def get_calendar_message(data):
     text = f"Календарь формулы 1 2026\n\n"
     for gp in data:
         date = format_date(gp.date)
+        flag = GP_FLAGS.get(gp.name, "")
         if gp.has_sprint:
             text += (
-                f"{gp.round}. {gp.name} ({'спринт'})\n{gp.circuit.name} ({date})\n\n"
+                f"{gp.round}. {flag} {gp.name} ({'спринт'})\n{gp.circuit.name} ({date})\n\n"
             )
         else:
             text += (
-                    f"{gp.round}. {gp.name}\n{gp.circuit.name} ({date})\n\n"
+                    f"{gp.round}. {flag} {gp.name}\n{gp.circuit.name} ({date})\n\n"
                 )
     return text
 
@@ -56,7 +60,8 @@ def get_next_race_message(next_gp, sessions):
     """
     Формирует сообщение о следующей гонке
     """
-    text = (f'🏁 Round {next_gp.round} - {next_gp.name}\n'
+    flag = GP_FLAGS.get(next_gp.name, "")
+    text = (f'Round {next_gp.round} - {flag} {next_gp.name}\n'
             f'{next_gp.circuit}\n\n')
     
     for day, session_list in sessions.items():
