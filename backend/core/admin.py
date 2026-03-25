@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Constructor, Driver
+from .models import Constructor, Driver, Circuit, GrandPrix
 
 
 @admin.register(Constructor)
@@ -33,6 +33,51 @@ class DriverAdmin(admin.ModelAdmin):
             return f"{age} лет"
         return "—"
     age.short_description = 'Возраст'
+
+
+@admin.register(Circuit)
+class CircuitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'location', 'country', 'full_name', 'ref',)
+    search_fields = ('name', 'location', 'country', 'full_name', 'ref')
+    list_filter = ('country',)
+    fields = ('ref', 'name', 'location', 'country', 'full_name',)
+
+
+@admin.register(GrandPrix)
+class GrandPrixAdmin(admin.ModelAdmin):
+    list_display = ('round', 'name', 'circuit', 'date', 'has_sprint',)
+    list_display_links = ('name',)
+    search_fields = ('name', 'round', 'circuit',)
+    list_filter = ('has_sprint', 'date',)
+
+    def get_fieldsets(self, request, obj=None):
+        base_fields = ('round', 'name', 'circuit', 'date', 'has_sprint',)
+
+        normal_sessions = (
+            'fp1_datetime', 'fp2_datetime', 'fp3_datetime',
+            'qualifying_datetime', 'race_datetime'
+        )
+
+        sprint_sessions = (
+            'fp1_datetime', 'sprint_qualifying_datetime', 'sprint_datetime',
+            'qualifying_datetime', 'race_datetime'
+        )
+
+        if obj and obj.has_sprint:
+            sessions_field = sprint_sessions
+        else:
+            sessions_field = normal_sessions
+
+        return (
+            ('Основная информация', {
+                'fields': base_fields,
+                'description': 'Общая информация о Гран-при'
+            }),
+            ('Расписание уикенда', {
+                'fields': sessions_field,
+                'description': 'Даты и время начала всех сессий (UTC)',
+            }),
+        )
 
 admin.site.site_header = "F1 Service Administration"
 admin.site.site_title = "Панель администратора"
