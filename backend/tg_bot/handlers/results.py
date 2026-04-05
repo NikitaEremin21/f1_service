@@ -5,11 +5,11 @@ from loguru import logger
 from services.race_service import get_relevant_race
 from services.result_service import get_session_results
 from services.utils import GP_FLAGS
-from keyboards.reply import (
+from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from keyboards.inline import get_session_buttons
+from tg_bot.keyboards.inline import get_session_buttons
 
 
 router = Router()

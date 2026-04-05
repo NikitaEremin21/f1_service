@@ -2,8 +2,8 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from asgiref.sync import sync_to_async
-from states.registration import Registration
-from keyboards.reply import get_main_menu
+from tg_bot.states.registration import Registration
+from tg_bot.keyboards.reply import get_main_menu
 from services.user_service import (
     create_user,
     set_timezone,
