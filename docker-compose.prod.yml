@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:15
+    container_name: f1_db_prod
+    restart: always
+    env_file:
+      - .env.prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - f1_network
+
+  backend:
+    build: .
+    container_name: f1_backend
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn backend.wsgi:application --bind 0.0.0.0:8000"
+    env_file:
+      - .env.prod
+    volumes:
+      - static_volume:/app/backend/staticfiles
+    depends_on:
+      - db
+    networks:
+      - f1_network
+
+  bot:
+    build: .
+    container_name: f1_bot
+    restart: always
+    command: python manage.py run_bot
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+    networks:
+      - f1_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: f1_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/static
+    depends_on:
+      - backend
+    networks:
+      - f1_network
+
+networks:
+  f1_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  static_volume:
