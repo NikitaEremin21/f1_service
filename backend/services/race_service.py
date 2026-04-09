@@ -44,8 +44,10 @@ def get_relevant_race():
         .first()
     )
 
-    if last_race:
-        return last_race
+    if last_race is None:
+        return None
+    
+    return last_race
     
     
 def get_last_completed_race():
@@ -61,6 +63,9 @@ def get_last_completed_race():
     last_race = GrandPrix.objects.filter(
         race_datetime__lt=now - timedelta(hours=RACE_DURATION_HOURS)
     ).order_by("-race_datetime").first()
+    
+    if not next_race and not last_race:
+        return None, None
     
     if not next_race:
         return last_race, "Race"

@@ -1,5 +1,5 @@
 from core.models import GrandPrix, Driver
-from services.fastf1_service import load_session
+# from services.fastf1_service import load_session
 from math import isnan
 from services.driver_service import get_drivers_list
 from services.utils import (
@@ -12,7 +12,7 @@ from services.openf1_service import (
     get_session_key,
     get_driver
 )
-import pandas as pd
+# import pandas as pd
 from loguru import logger
 
 

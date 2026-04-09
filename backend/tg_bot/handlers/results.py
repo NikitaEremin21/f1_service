@@ -5,11 +5,11 @@ from loguru import logger
 from services.race_service import get_relevant_race
 from services.result_service import get_session_results
 from services.utils import GP_FLAGS
-from keyboards.reply import (
+from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from keyboards.inline import get_session_buttons
+from tg_bot.keyboards.inline import get_session_buttons
 
 
 router = Router()
@@ -20,6 +20,15 @@ router = Router()
 async def results_menu(message):
     try:
         race = await sync_to_async(get_relevant_race)()
+
+        if race is None:
+            await message.answer(
+                "🏁 Информация о гонках пока недоступна.\n\n"
+                "Сезон еще не начался или данные загружаются.",
+                reply_markup=get_main_menu()
+            )
+            return
+        
         keyboard = get_session_buttons(race)
         if keyboard:
             await message.answer(

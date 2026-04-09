@@ -10,6 +10,7 @@ from services.utils import (
 )
 from services.race_service import get_last_completed_race
 from services.utils import TEAMS_FLAGS
+from loguru import logger
 
 
 def get_format_championship_drivers_message(race, championship_drivers):
@@ -44,14 +45,30 @@ def get_drivers_standings():
     """
     Загружает зачет пилотов
     """
-    race, session_name = get_last_completed_race()
-    race_name = race.name
-    year = race.year
-    meeting_key = get_meeting_key(race_name, year)
-    session_key = get_session_key(meeting_key, session_name, year)
-    championship_drivers = get_championship_drivers(session_key)
-    drivers_message = get_format_championship_drivers_message(race, championship_drivers)
-    return drivers_message
+    try:
+        race, session_name = get_last_completed_race()
+
+        if race is None:
+            return "Чемпионат еще не начался.\n\nПосле первой гонки здесь появится таблица."
+
+        race_name = race.name
+        year = race.year
+        meeting_key = get_meeting_key(race_name, year)
+        session_key = get_session_key(meeting_key, session_name, year)
+        championship_drivers = get_championship_drivers(session_key)
+
+        if not championship_drivers:
+            return "Данные чемпионата временно недоступны."
+        
+        drivers_message = get_format_championship_drivers_message(race, championship_drivers)
+        return drivers_message
+    except AttributeError as e:
+        logger.error(f"Ошибка атрибута при загрузке чемпионата пилотов: {e}")
+        return "🏁 Чемпионат пилотов временно недоступен.\n\nВозможно, сезон еще не начался."
+    except Exception as e:
+        logger.error(f"Ошибка при загрузке чемпионата пилотов: {e}")
+        return "Чемпионат пилотов временно недоступен.\n\nВозможно, сезон еще не начался."
+
 
 
 def get_format_championship_teams_message(race, championship_drivers):
@@ -79,12 +96,27 @@ def get_teams_standings():
     """
     Загружает кубок конструкторов
     """
-    race, session_name = get_last_completed_race()
-    race_name = race.name
-    year = race.year
-    meeting_key = get_meeting_key(race_name, year)
-    session_key = get_session_key(meeting_key, session_name, year)
-    championship_teams = get_championship_teams(session_key)
-    teams_message = get_format_championship_teams_message(race, championship_teams)
-    return teams_message
+    try:
+        race, session_name = get_last_completed_race()
+
+        if race is None:
+            return "Кубок конструкторов еще не начался.\n\nПосле первой гонки здесь появится таблица."
+
+        race_name = race.name
+        year = race.year
+        meeting_key = get_meeting_key(race_name, year)
+        session_key = get_session_key(meeting_key, session_name, year)
+        championship_teams = get_championship_teams(session_key)
+
+        if not championship_teams:
+            return "Данные кубка конструкторов временно недоступны."
+        
+        teams_message = get_format_championship_teams_message(race, championship_teams)
+        return teams_message
+    except AttributeError as e:
+        logger.error(f"Ошибка атрибута при загрузке кубка конструкторов: {e}")
+        return "Кубок конструкторов временно недоступен.\n\nВозможно, сезон еще не начался."
+    except Exception as e:
+        logger.error(f"Ошибка при загрузке кубка конструкторов: {e}")
+        return "Кубок конструкторов временно недоступен.\n\nВозможно, сезон еще не начался."
 

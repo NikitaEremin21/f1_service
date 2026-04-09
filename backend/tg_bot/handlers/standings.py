@@ -6,7 +6,7 @@ from services.standing_service import (
     get_drivers_standings,
     get_teams_standings
 )
-from keyboards.reply import (
+from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
