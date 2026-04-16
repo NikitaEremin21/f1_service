@@ -45,13 +45,13 @@ class CircuitAdmin(admin.ModelAdmin):
 
 @admin.register(GrandPrix)
 class GrandPrixAdmin(admin.ModelAdmin):
-    list_display = ('round', 'name', 'circuit', 'date', 'has_sprint',)
+    list_display = ('round', 'name', 'circuit', 'date', 'year', 'has_sprint',)
     list_display_links = ('name',)
     search_fields = ('name', 'round', 'circuit',)
     list_filter = ('has_sprint', 'date',)
 
     def get_fieldsets(self, request, obj=None):
-        base_fields = ('round', 'name', 'circuit', 'date', 'has_sprint',)
+        base_fields = ('round', 'name', 'circuit', 'date', 'year', 'has_sprint',)
 
         normal_sessions = (
             'fp1_datetime', 'fp2_datetime', 'fp3_datetime',

@@ -2,6 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from core.models import GrandPrix
 from django.utils import timezone
+from loguru import logger
 
 
 SESSION_LABELS = {
@@ -45,7 +46,7 @@ def get_session_buttons(race):
             builder.add(
                 InlineKeyboardButton(
                     text=SESSION_LABELS.get(field, field),
-                    callback_data=f"session:{race.id}:{field}"
+                    callback_data=f"session:{race.round}:{field}"
                 )
             )
 
