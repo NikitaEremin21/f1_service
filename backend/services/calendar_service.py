@@ -8,6 +8,7 @@ from services.utils import (
     GP_FLAGS,
 )
 from services.user_service import get_user_by_telegram_id
+from loguru import logger
 
 
 SESSION_LABELS = {
@@ -103,7 +104,12 @@ def get_next_race(user_id):
     """
     Возвращает информацию о следующей гонке
     """
-    user_tz = get_user_by_telegram_id(user_id).timezone
+    user = get_user_by_telegram_id(user_id)
+    if not user:
+        logger.warning(f"Пользователь {user_id} не найден") 
+        return None
+
+    user_tz = user.timezone
     next_gp = GrandPrix.objects.select_related('circuit').filter(
         race_datetime__gte=timezone.now()
     ).order_by('race_datetime').first()
