@@ -25,9 +25,9 @@ def get_main_menu():
     builder.add(KeyboardButton(text=MainMenuButtons.RESULTS))
     builder.add(KeyboardButton(text=MainMenuButtons.TEAMS_STANDINGS))
     builder.add(KeyboardButton(text=MainMenuButtons.DRIVERS_STANDINGS))
-    # builder.add(KeyboardButton(text=MainMenuButtons.SETTINGS))
+    builder.add(KeyboardButton(text=MainMenuButtons.SETTINGS))
 
-    builder.adjust(2, 2, 2, 2)
+    builder.adjust(2, 2, 2, 2, 1)
 
     return builder.as_markup(resize_keyboard=True)
 
