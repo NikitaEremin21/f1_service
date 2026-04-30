@@ -46,7 +46,7 @@ async def results_menu(message):
 async def session_results(callback):
     try:
         i, race_round, session_field = callback.data.split(":")
-        text = await sync_to_async(get_session_results)(race_round, session_field)
+        text = await get_session_results(race_round, session_field)
         await callback.message.answer(text, parse_mode="HTML")
     except Exception as e:
         logger.error(f"Ошибка при обработке сессии: {e}")

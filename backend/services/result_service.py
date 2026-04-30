@@ -14,6 +14,7 @@ from services.openf1_service import (
 )
 # import pandas as pd
 from loguru import logger
+from asgiref.sync import sync_to_async
 
 
 PRACTICE_SESSIONS = [
@@ -136,13 +137,13 @@ def get_format_race_message_fast_f1(session, race):
     return text
 
 
-def get_format_qualifying_message(session, race, session_field):
+async def get_format_qualifying_message(session, race, session_field):
     """
     Формирует результаты квалификации
     """
     race_name = race.name
     
-    drivers = get_drivers_list()
+    drivers = await sync_to_async(get_drivers_list)()
     
     results = {r['driver_number']: r for r in session}
     
@@ -228,16 +229,16 @@ def get_format_qualifying_message(session, race, session_field):
     return text
 
 
-def get_format_practice_message(race, session_key, session_field):
+async def get_format_practice_message(race, session_key, session_field):
     """
     Формирует результаты свободных практик
     """
     race_name = race.name
     practice_name = SESSION_MAP.get(session_field)
-    results = get_results(session_key)
-    drivers_list = get_drivers_list()
+    results = await get_results(session_key)
+    drivers_list = await sync_to_async(get_drivers_list)()
     drivers = {driver.number: driver for driver in drivers_list}
-    drivers_info_list = get_driver(session_key)
+    drivers_info_list = await get_driver(session_key)
     drivers_info = {driver["driver_number"]: driver for driver in drivers_info_list}
 
     text = f"{GP_FLAGS.get(race_name, '')} {race_name} {GP_FLAGS.get(race_name, '')}\n\n"
@@ -284,14 +285,14 @@ def get_format_practice_message(race, session_key, session_field):
     return text
 
 
-def get_format_race_message(session, race, session_field):
+async def get_format_race_message(session, race, session_field):
     """
     Форматирует результаты спринта / гонки
     """
     race_name = race.name
     session_name = SESSION_MAP.get(session_field)
 
-    drivers_list = get_drivers_list()
+    drivers_list = await sync_to_async(get_drivers_list)()
 
     results = {r['driver_number']: r for r in session}
 
@@ -363,25 +364,25 @@ def get_format_race_message(session, race, session_field):
     return text
 
 
-def get_session_results(round, session_field):
+async def get_session_results(round, session_field):
     """
     Загружает данные сессии и возвращает готовый текст с результатами
     """
-    race = GrandPrix.objects.get(round=round)
+    race = await sync_to_async(GrandPrix.objects.get)(round=round)
     meeting_name = race.name
     session_name = SESSION_MAP.get(session_field)
     year = race.year
 
-    meeting_key = get_meeting_key(meeting_name, year)
-    session_key = get_session_key(meeting_key, session_name, year)
+    meeting_key = await get_meeting_key(meeting_name, year)
+    session_key = await get_session_key(meeting_key, session_name, year)
 
     if session_field in PRACTICE_SESSIONS:
-        return get_format_practice_message(race, session_key, session_field)
+        return await get_format_practice_message(race, session_key, session_field)
     
     if session_field == "qualifying_datetime" or session_field == "sprint_qualifying_datetime":
-        session = get_results(session_key)
-        return get_format_qualifying_message(session, race, session_field)
+        session = await get_results(session_key)
+        return await get_format_qualifying_message(session, race, session_field)
     
     if session_field == "race_datetime" or session_field == "sprint_datetime":
-        session = get_results(session_key)
-        return get_format_race_message(session, race, session_field)
+        session = await get_results(session_key)
+        return await get_format_race_message(session, race, session_field)
