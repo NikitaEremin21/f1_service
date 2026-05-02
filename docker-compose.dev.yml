@@ -11,6 +11,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - f1_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: f1_redis_dev
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - f1_network
 
 volumes:
   postgres_dev_data:
+
+networks:
+  f1_network:
+    driver: bridge

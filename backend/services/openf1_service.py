@@ -1,16 +1,29 @@
-from urllib.request import urlopen
-from urllib.parse import quote
+from shlex import quote
+
+from services.http_client import http_client
+from services.cache.decorators import async_cache
 import json
 from loguru import logger
 
 
-def get_meeting_key(meeting_name, year):
+@async_cache(prefix="openf1:meeting_key", ttl=604800)
+async def get_meeting_key(meeting_name, year):
     """
     Получает meeting_key
     """
+    url = f"https://api.openf1.org/v1/meetings"
+    meeting_name = meeting_name.replace("'", "")
     try:
-        response = urlopen(f'https://api.openf1.org/v1/meetings?year={year}&meeting_name={quote(meeting_name)}')
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "year": year,
+                "meeting_name": meeting_name,
+            }
+        )
+        
+        if not data:
+            return None
+        
         meeting_key = data[0].get('meeting_key')
         return meeting_key
     except Exception as e:
@@ -20,14 +33,23 @@ def get_meeting_key(meeting_name, year):
         raise e
     
 
-def get_session_key(meeting_key, session_name, year):
+@async_cache(prefix="openf1:session_key", ttl=604800)
+async def get_session_key(meeting_key, session_name, year):
     """
     Получает session_key
     """
+    url = f"https://api.openf1.org/v1/sessions"
     try:
-        response = urlopen(f'https://api.openf1.org/v1/sessions?'
-                           f'meeting_key={meeting_key}&session_name={quote(session_name)}&year={year}')
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "meeting_key": meeting_key,
+                "session_name": session_name,
+                "year": year,
+            }
+        )
+        if not data:
+            return None
+        
         session_key = data[0].get('session_key')
         return session_key
     except Exception as e:
@@ -37,14 +59,23 @@ def get_session_key(meeting_key, session_name, year):
         raise e
     
 
-def get_results(session_key):
+@async_cache(prefix="openf1:session_result", ttl=5400)
+async def get_results(session_key):
     """
     Получает результаты сессии
     """
+    url = f"https://api.openf1.org/v1/session_result"
     try:
-        response = urlopen(f'https://api.openf1.org/v1/session_result?'
-                           f'session_key={session_key}&position%3C=22')
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "session_key": session_key,
+                "position<=22": "",
+            }
+        )
+
+        if not data:
+            return None
+        
         return data
     except Exception as e:
         logger.warning(
@@ -53,14 +84,22 @@ def get_results(session_key):
         raise e
     
 
-def get_driver(session_key):
+@async_cache(prefix="openf1:driver", ttl=5400)
+async def get_driver(session_key):
     """
     Получает информацию о пилотах, участвовавших в сессии.
     """
+    url = f"https://api.openf1.org/v1/drivers"
     try:
-        response = urlopen(f"https://api.openf1.org/v1/drivers?"
-                           f"session_key={session_key}")
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "session_key": session_key,
+            }
+        )
+        if not data:
+            return None
+        
+
         return data
     except Exception as e:
         logger.warning(
@@ -70,14 +109,22 @@ def get_driver(session_key):
 
     
 
-def get_championship_drivers(session_key):
+@async_cache(prefix="openf1:championship_drivers", ttl=5400)  
+async def get_championship_drivers(session_key):
     """
     Получает актуальный зачёт пилотов (чемпионат)
     """
+    url = f"https://api.openf1.org/v1/championship_drivers"
     try:
-        response = urlopen(f"https://api.openf1.org/v1/championship_drivers?"
-                           f"session_key={session_key}")
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "session_key": session_key,
+            }
+        )
+
+        if not data:
+            return None
+        
         return data
     except Exception as e:
         logger.warning(
@@ -85,15 +132,23 @@ def get_championship_drivers(session_key):
         )
         raise e
     
-
-def get_championship_teams(session_key):
+    
+@async_cache(prefix="openf1:championship_teams", ttl=5400)
+async def get_championship_teams(session_key):
     """
     Получает актуальный зачёт конструкторов (кубок)
     """
+    url = f"https://api.openf1.org/v1/championship_teams"
     try:
-        response = urlopen(f"https://api.openf1.org/v1/championship_teams?"
-                           f"session_key={session_key}")
-        data = json.loads(response.read().decode('utf-8'))
+        data = await http_client.get(
+            url, params={
+                "session_key": session_key,
+            }
+        )
+
+        if not data:
+            return None
+        
         return data
     except Exception as e:
         logger.warning(

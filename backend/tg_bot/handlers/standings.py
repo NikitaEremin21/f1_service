@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from asgiref.sync import sync_to_async
+
 from loguru import logger
 from services.standing_service import (
     get_drivers_standings,
@@ -19,7 +19,7 @@ router = Router()
 @router.message(Command("drivers_standings"))
 async def drivers_standings(message):
     try:
-        text = await sync_to_async(get_drivers_standings)()
+        text = await get_drivers_standings()
         await message.answer(
             text, parse_mode="HTML",
             reply_markup=get_main_menu()
@@ -33,7 +33,7 @@ async def drivers_standings(message):
 @router.message(Command("teams_standings"))
 async def teams_standings(message):
     try:
-        text = await sync_to_async(get_teams_standings)()
+        text = await get_teams_standings()
         await message.answer(
             text, parse_mode="HTML",
             reply_markup=get_main_menu()

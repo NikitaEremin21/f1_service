@@ -11,6 +11,7 @@ from services.utils import (
 from services.race_service import get_last_completed_race
 from services.utils import TEAMS_FLAGS
 from loguru import logger
+from asgiref.sync import sync_to_async
 
 
 def get_format_championship_drivers_message(race, championship_drivers):
@@ -41,26 +42,26 @@ def get_format_championship_drivers_message(race, championship_drivers):
     return text
 
 
-def get_drivers_standings():
+async def get_drivers_standings():
     """
     Загружает зачет пилотов
     """
     try:
-        race, session_name = get_last_completed_race()
+        race, session_name = await sync_to_async(get_last_completed_race)()
 
         if race is None:
             return "Чемпионат еще не начался.\n\nПосле первой гонки здесь появится таблица."
 
         race_name = race.name
         year = race.year
-        meeting_key = get_meeting_key(race_name, year)
-        session_key = get_session_key(meeting_key, session_name, year)
-        championship_drivers = get_championship_drivers(session_key)
+        meeting_key = await get_meeting_key(race_name, year)
+        session_key = await get_session_key(meeting_key, session_name, year)
+        championship_drivers = await get_championship_drivers(session_key)
 
         if not championship_drivers:
             return "Данные чемпионата временно недоступны."
         
-        drivers_message = get_format_championship_drivers_message(race, championship_drivers)
+        drivers_message = await sync_to_async(get_format_championship_drivers_message)(race, championship_drivers)
         return drivers_message
     except AttributeError as e:
         logger.error(f"Ошибка атрибута при загрузке чемпионата пилотов: {e}")
@@ -92,26 +93,26 @@ def get_format_championship_teams_message(race, championship_drivers):
     text += "</pre>" 
     return text
 
-def get_teams_standings():
+async def get_teams_standings():
     """
     Загружает кубок конструкторов
     """
     try:
-        race, session_name = get_last_completed_race()
+        race, session_name = await sync_to_async(get_last_completed_race)()
 
         if race is None:
             return "Кубок конструкторов еще не начался.\n\nПосле первой гонки здесь появится таблица."
 
         race_name = race.name
         year = race.year
-        meeting_key = get_meeting_key(race_name, year)
-        session_key = get_session_key(meeting_key, session_name, year)
-        championship_teams = get_championship_teams(session_key)
+        meeting_key = await get_meeting_key(race_name, year)
+        session_key = await get_session_key(meeting_key, session_name, year)
+        championship_teams = await get_championship_teams(session_key)
 
         if not championship_teams:
             return "Данные кубка конструкторов временно недоступны."
         
-        teams_message = get_format_championship_teams_message(race, championship_teams)
+        teams_message = await sync_to_async(get_format_championship_teams_message)(race, championship_teams)
         return teams_message
     except AttributeError as e:
         logger.error(f"Ошибка атрибута при загрузке кубка конструкторов: {e}")

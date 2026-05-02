@@ -15,7 +15,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv('/mnt/d/Projects/f1_service/.env.dev')
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
+if DJANGO_ENV == 'production':
+    env_file = Path(__file__).resolve().parent.parent.parent / '.env.prod'
+else:
+    env_file = Path(__file__).resolve().parent.parent.parent / '.env.dev'
+
+load_dotenv(env_file)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,6 +96,11 @@ DATABASES = {
 }
 
 
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_DB = int(os.getenv("REDIS_DB", 0))
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -114,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Europe/Kaliningrad'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 

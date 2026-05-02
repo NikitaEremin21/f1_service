@@ -8,3 +8,5 @@ aiohttp==3.13.3
 requests==2.32.3
 geopy==2.4.1
 timezonefinder==8.2.1
+redis>=5.0.0
+django-redis>=5.4.0
