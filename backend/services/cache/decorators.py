@@ -1,0 +1,47 @@
+import json
+import functools
+from django.conf import settings
+from services.cache.redis_cache import redis_client
+from loguru import logger
+
+
+def async_cache(prefix: str, ttl: int = None):
+    """
+    Redis cache декоратор
+    """
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+
+            key_parts = [prefix]
+            for arg in args:
+                if isinstance(arg, str):
+                    key_parts.append(arg.replace(' ', '_').replace("'", ""))
+                elif isinstance(arg, int):
+                    key_parts.append(str(arg))
+                else:
+                    key_parts.append(str(arg))
+
+            key_raw = ":".join(key_parts)
+            # cache_key = str(abs(hash(key_raw)))
+
+            cached = await redis_client.get(key_raw)
+
+            if cached:
+                return json.loads(cached)
+
+            result = await func(*args, **kwargs)
+
+            await redis_client.set(
+                key_raw,
+                json.dumps(result, default=str),
+                ttl or settings.REDIS_TTL
+            )
+
+            return result
+
+        return wrapper
+
+    return decorator

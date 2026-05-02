@@ -10,6 +10,13 @@ services:
     networks:
       - f1_network
 
+  redis:
+    image: redis:7-alpine
+    container_name: f1_redis_prod
+    restart: always
+    networks:
+      - f1_network
+
   backend:
     build: .
     container_name: f1_backend
@@ -24,6 +31,7 @@ services:
       - static_volume:/app/backend/staticfiles
     depends_on:
       - db
+      - redis
     networks:
       - f1_network
 
@@ -36,6 +44,7 @@ services:
       - .env.prod
     depends_on:
       - db
+      - redis
     networks:
       - f1_network
 
