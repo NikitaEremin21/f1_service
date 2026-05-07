@@ -1,0 +1,24 @@
+from services.http_client import http_client
+from django.conf import settings
+
+
+class BackendClient:
+    def __init__(self):
+        if settings.DEBUG:
+            self.base_url = "http://localhost:8000/api/v1"
+        else:
+            self.base_url = "http://backend:8000/api/v1"
+
+
+    async def get_calendar(self):
+        """
+        Получает календарь гонок из бэкенда
+        """
+        url = f"{self.base_url}/calendar/all"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+    
+
+backend_client = BackendClient()
