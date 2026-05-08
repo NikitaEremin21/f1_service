@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from services.calendar_service import (
     get_all_races,
     get_upcoming_races,
+    get_next_race_data,
 )
-from core.models import GrandPrix
 from asgiref.sync import sync_to_async
 
 
@@ -22,6 +22,22 @@ class GrandPrixSchema(BaseModel):
     date: date
     has_sprint: bool
     race_datetime: Optional[datetime] = None
+
+
+class SessionSchema(BaseModel):
+    name: str
+    datetime: str
+    local_datetime: str
+
+
+class NextRaceSchema(BaseModel):
+    round: int
+    name: str
+    circuit_name: str
+    date: str
+    has_sprint: bool
+    sessions: List[SessionSchema]
+    
 
 
 @router.get("/all", response=List[GrandPrixSchema])
@@ -72,3 +88,13 @@ async def get_upcoming_races_api(request):
         )
 
     return result
+
+
+@router.get("/next_race", response=NextRaceSchema)
+async def get_next_race_api(request, user_tz):
+    """
+    Получить информацию о следующей гонке
+    """
+    next_race = await sync_to_async(get_next_race_data)(user_tz)
+    
+    return next_race

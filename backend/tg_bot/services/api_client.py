@@ -32,4 +32,15 @@ class BackendClient:
         return data
     
 
+    async def get_next_race(self, user_tz):
+        """
+        Получить следующую гонку
+        """
+        url = f"{self.base_url}/calendar/next_race"
+        data =await http_client.get(url, params={"user_tz": user_tz})
+        if not data:
+            return None
+        return data
+    
+
 backend_client = BackendClient()

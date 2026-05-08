@@ -1,14 +1,15 @@
 from aiogram import Router, F
 from aiogram.filters import Command
 from asgiref.sync import sync_to_async
-import loguru
+from loguru import logger
 from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from services.calendar_service import get_next_race
-from services.user_service import create_user
+from services.user_service import create_user, get_user_by_telegram_id
+from tg_bot.services.api_client import backend_client
 from tg_bot.states.registration import Registration
+from tg_bot.formatters.calendar_formatter import get_next_race_message
 
 
 router = Router()
@@ -19,9 +20,8 @@ router = Router()
 async def next_race(message, state):
     try:
         user_id = message.from_user.id
-        next_race_message = await sync_to_async(get_next_race)(user_id)
-
-        if next_race_message is None:
+        user = await sync_to_async(get_user_by_telegram_id)(user_id)
+        if not user:
             await state.set_state(Registration.waiting_for_city)
             await sync_to_async(create_user)(
                 telegram_id=message.from_user.id,
@@ -35,10 +35,13 @@ async def next_race(message, state):
             )
             return
         
+        user_tz = user.timezone
+        next_race_data = await backend_client.get_next_race(user_tz)
+        next_race_message = get_next_race_message(next_race_data)
         await message.answer(
             next_race_message,
             reply_markup=get_main_menu()
         )
     except Exception as e:
-        loguru.logger.error(f'Ошибка при получении следующей гонки: {e}')
+        logger.error(f'Ошибка при получении следующей гонки: {e}')
         await message.answer('Ошибка при получении следующей гонки')
