@@ -22,11 +22,10 @@ SESSION_LABELS = {
 }
 
 
-def format_calendar_message(races):
+def format_calendar_message(races, text):
     """
     Формирует сообщение календаря
     """
-    text = f"Календарь формулы 1 2026\n\n"
     for race in races:
         if isinstance(race['date'], str):
             date_obj = datetime.strptime(race['date'], '%Y-%m-%d').date()

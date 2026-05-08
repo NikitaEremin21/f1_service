@@ -22,25 +22,6 @@ SESSION_LABELS = {
 }
 
 
-def get_calendar_message(data):
-    """
-    Формирует сообщение календаря
-    """
-    text = f"Календарь формулы 1 2026\n\n"
-    for gp in data:
-        date = format_date(gp.date)
-        flag = GP_FLAGS.get(gp.name, "")
-        if gp.has_sprint:
-            text += (
-                f"{gp.round}. {flag} {gp.name} ({'спринт'})\n{gp.circuit.name} ({date})\n\n"
-            )
-        else:
-            text += (
-                    f"{gp.round}. {flag} {gp.name}\n{gp.circuit.name} ({date})\n\n"
-                )
-    return text
-
-
 def group_sessions_by_local_day(sessions, user_tz):
     """
     Групперует сессии и преобразует в timezone пользователя

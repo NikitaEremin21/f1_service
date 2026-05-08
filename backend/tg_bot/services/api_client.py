@@ -21,4 +21,15 @@ class BackendClient:
         return data
     
 
+    async def get_upcoming_calendar(self):
+        """
+        Получает календарь предстоящих гонок из бэкенда
+        """
+        url = f"{self.base_url}/calendar/upcoming"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+    
+
 backend_client = BackendClient()

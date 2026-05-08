@@ -6,11 +6,8 @@ from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from services.calendar_service import (
-    get_upcoming_races,
-    get_calendar_message
-)
-
+from tg_bot.services.api_client import backend_client
+from tg_bot.formatters.calendar_formatter import format_calendar_message
 
 router = Router()
 
@@ -19,10 +16,12 @@ router = Router()
 @router.message(Command("upcoming"))
 async def upcoming_function(message):
     try:
-        data = await sync_to_async(get_upcoming_races)()
-        calendar_text = get_calendar_message(data)
+        text = f"Предстоящие этапы формулы 1 2026\n\n"
+        data = await backend_client.get_upcoming_calendar()
+        upcoming_text = format_calendar_message(data, text)
         await message.answer(
-            calendar_text,
+            upcoming_text,
+            parse_mode="HTML",
             reply_markup=get_main_menu()
         )
     except Exception as e:

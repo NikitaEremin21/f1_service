@@ -17,10 +17,12 @@ router = Router()
 @router.message(Command("calendar"))
 async def calendar_function(message):
     try:
+        text = f"Календарь формулы 1 2026\n\n"
         data = await backend_client.get_calendar()
-        calendar_text = format_calendar_message(data)
+        calendar_text = format_calendar_message(data, text)
         await message.answer(
             calendar_text,
+            parse_mode="HTML",
             reply_markup=get_main_menu()
         )
     except Exception as e:
