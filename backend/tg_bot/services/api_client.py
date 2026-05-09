@@ -54,4 +54,15 @@ class BackendClient:
         return data
     
 
+    async def get_all_constructors(self):
+        """
+        Получить список команд
+        """
+        url = f"{self.base_url}/constructors/all"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+    
+
 backend_client = BackendClient()

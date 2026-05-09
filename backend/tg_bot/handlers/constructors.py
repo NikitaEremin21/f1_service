@@ -1,15 +1,12 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from asgiref.sync import sync_to_async
 import loguru
 from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from services.constructor_service import (
-    get_constructors_list,
-    format_constructors_list
-)
+from tg_bot.services.api_client import backend_client
+from tg_bot.formatters.constructors_formatter import format_constructors_message
 
 
 router = Router()
@@ -19,8 +16,8 @@ router = Router()
 @router.message(Command("constructors"))
 async def constructors_list(message):
     try:
-        constructors = await sync_to_async(get_constructors_list)()
-        text = format_constructors_list(constructors)
+        constructors = await backend_client.get_all_constructors()
+        text = format_constructors_message(constructors)
         await message.answer(
             text, parse_mode="HTML",
             reply_markup=get_main_menu()
