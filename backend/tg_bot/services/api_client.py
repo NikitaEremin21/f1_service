@@ -43,4 +43,15 @@ class BackendClient:
         return data
     
 
+    async def get_all_drivers(self):
+        """
+        Получить список пилотов
+        """
+        url = f"{self.base_url}/drivers/all"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+    
+
 backend_client = BackendClient()
