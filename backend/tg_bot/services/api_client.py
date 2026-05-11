@@ -76,4 +76,15 @@ class BackendClient:
         return data
     
 
+    async def get_standings_teams(self):
+        """
+        Получить кубок конструкторов
+        """
+        url = f"{self.base_url}/standings/constructors"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+    
+
 backend_client = BackendClient()
