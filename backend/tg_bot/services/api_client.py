@@ -87,4 +87,15 @@ class BackendClient:
         return data
     
 
+    async def get_relevant_race(self):
+        """
+        Получить релевантный Гран-при для отображения результатов
+        """
+        url = f"{self.base_url}/results/relevant_race"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
+
+
 backend_client = BackendClient()
