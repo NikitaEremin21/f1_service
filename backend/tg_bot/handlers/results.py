@@ -1,16 +1,18 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from asgiref.sync import sync_to_async
 from loguru import logger
-from services.race_service import get_relevant_race
-from services.result_service import get_session_results
-from services.utils import GP_FLAGS
+from services.utils import GP_FLAGS, PRACTICE_SESSIONS
 from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
 from tg_bot.keyboards.inline import get_session_buttons
 from tg_bot.services.api_client import backend_client
+from tg_bot.formatters.results_formatter import (
+    get_format_practice_message,
+    get_format_qualifying_message,
+    get_format_race_message
+)
 
 
 router = Router()
@@ -47,9 +49,25 @@ async def results_menu(message):
 @router.callback_query(F.data.startswith("session:"))
 async def session_results(callback):
     try:
-        i, race_round, session_field = callback.data.split(":")
-        text = await get_session_results(race_round, session_field)
+        _, race_round, session_field = callback.data.split(":")
+        session_name = session_field.replace("_datetime", "")
+
+        result_data = await backend_client.get_session_results(race_round, session_name)
+        if not result_data:
+            await callback.message.answer("Результаты для этой сессии пока недоступны.")
+            return
+        
+        session_type = result_data.get("session")
+
+        if session_type in PRACTICE_SESSIONS:
+            text = await get_format_practice_message(result_data)
+        elif session_type == "qualifying" or session_type == "sprint_qualifying":
+            text = await get_format_qualifying_message(result_data)
+        else:
+            text = await get_format_race_message(result_data)
+
         await callback.message.answer(text, parse_mode="HTML")
+
     except Exception as e:
         logger.error(f"Ошибка при обработке сессии: {e}")
         await callback.message.answer("Не удалось загрузить результаты.")

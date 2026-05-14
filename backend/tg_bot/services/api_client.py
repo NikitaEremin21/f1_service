@@ -96,6 +96,17 @@ class BackendClient:
         if not data:
             return None
         return data
+    
+
+    async def get_session_results(self, round, session):
+        """
+        Получить результаты сессии по раунду и типу сессии
+        """
+        url = f"{self.base_url}/results/{round}/{session}"
+        data = await http_client.get(url)
+        if not data:
+            return None
+        return data
 
 
 backend_client = BackendClient()
