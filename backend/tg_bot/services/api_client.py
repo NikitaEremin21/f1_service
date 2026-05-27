@@ -107,6 +107,37 @@ class BackendClient:
         if not data:
             return None
         return data
+    
+
+    async def create_user(self, telegram_id: int, username: str = None, first_name: str = None):
+        """
+        Зарегистрировать пользователя
+        """
+        url = f"{self.base_url}/users/create"
+        return await http_client.post(url, json={
+            "telegram_id": telegram_id,
+            "username": username,
+            "first_name": first_name
+        })
+
+
+    async def get_user(self, telegram_id: int):
+        """
+        Получить пользователя
+        """
+        url = f"{self.base_url}/users/{telegram_id}"
+        return await http_client.get(url)
+
+
+    async def set_user_timezone(self, telegram_id: int, city: str):
+        """
+        Установить часовой пояс
+        """
+        url = f"{self.base_url}/users/set_timezone"
+        return await http_client.post(url, json={
+            "telegram_id": telegram_id,
+            "city": city
+        })
 
 
 backend_client = BackendClient()

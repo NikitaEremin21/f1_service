@@ -24,7 +24,7 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             gunicorn backend.wsgi:application --bind 0.0.0.0:8000"
+             uvicorn backend.asgi:application --host 0.0.0.0 --port 8000 --workers 4"
     env_file:
       - .env.prod
     volumes:
@@ -43,8 +43,7 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - db
-      - redis
+      - backend
     networks:
       - f1_network
 

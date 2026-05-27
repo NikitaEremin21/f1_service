@@ -32,6 +32,26 @@ class HttpClient:
                     raise e
                 await asyncio.sleep(2 ** attempt)
 
+
+    async def post(self, url, data=None, json=None, params=None, retries=3):
+        """
+        POST запрос
+        """
+        session = await self.get_session()
+
+        for attempt in range(retries):
+            try:
+                async with session.post(url, params=params, json=json, data=data, timeout=10) as response:
+                    if response.status == 429:
+                        raise Exception("Превышение лимита запросов: 429")
+                    response.raise_for_status()
+                    return await response.json()
+            except Exception as e:
+                logger.warning(f"Ошибка при POST запросе: {e}. Попытка {attempt + 1}")
+                if attempt == retries - 1:
+                    raise e
+                await asyncio.sleep(2 ** attempt)
+
     
     async def close(self):
         if self.session:

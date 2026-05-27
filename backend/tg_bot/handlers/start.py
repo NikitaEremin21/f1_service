@@ -1,46 +1,46 @@
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from asgiref.sync import sync_to_async
 from tg_bot.states.registration import Registration
 from tg_bot.keyboards.reply import get_main_menu
-from services.user_service import (
-    create_user,
-    set_timezone,
-    get_user_by_telegram_id,
-)
+from tg_bot.services.api_client import backend_client
+from loguru import logger
 
 
 router = Router()
 
+
 @router.message(CommandStart())
 async def start_function(message, state):
     await state.set_state(Registration.waiting_for_city)
-    await sync_to_async(create_user)(
+
+    await backend_client.create_user(
         telegram_id=message.from_user.id,
         username=message.from_user.username,
         first_name=message.from_user.first_name,
     )
-    text = (
+    await message.answer(
         'Добро пожаловать в F1 Assistant!\n'
         f'{message.from_user.first_name}, в каком городе ты живешь?'
     )
 
-    await message.answer(text)
-
 
 @router.message(Registration.waiting_for_city)
 async def user_city_handler(message, state):
+
     tg_id = message.from_user.id
-    user = await sync_to_async(get_user_by_telegram_id)(tg_id)
-    timezone = await sync_to_async(set_timezone)(user, message.text)
-    if not timezone:
+    text = message.text
+    logger.info(f"User {tg_id} entered city: {text}")
+    result = await backend_client.set_user_timezone(tg_id, text)
+    
+    if not result or not result.get("timezone"):
         await message.answer(
             'К сожалению, я не знаю такого города. Пожалуйста, попробуйте еще раз.'
         )
         return
+    
     await message.answer(
-        f'Часовой пояс установлен: {timezone}',
+        f'Часовой пояс установлен: {result.get("timezone")}',
         reply_markup=get_main_menu(),
     )
 
