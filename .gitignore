@@ -59,6 +59,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.sql
 
 # Flask stuff:
 instance/
@@ -216,4 +217,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+backend/staticfiles/
 fastf1_cache/

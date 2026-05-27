@@ -77,6 +77,24 @@ TEAMS_FLAGS = {
 }
 
 
+SESSION_MAP = {
+    "fp1": "Practice 1",
+    "fp2": "Practice 2",
+    "fp3": "Practice 3",
+    "sprint_qualifying": "Sprint Qualifying",
+    "sprint": "Sprint",
+    "qualifying": "Qualifying",
+    "race": "Race"
+}
+
+
+PRACTICE_SESSIONS = [
+    "fp1",
+    "fp2",
+    "fp3"
+]
+
+
 def get_timezone_by_city(city):
     city = city.strip().lower()
     try:

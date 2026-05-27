@@ -1,14 +1,6 @@
-from datetime import datetime, timedelta
 from django.utils import timezone
 from core.models import GrandPrix
 from zoneinfo import ZoneInfo
-from collections import defaultdict
-from services.utils import (
-    format_date,
-    GP_FLAGS,
-)
-from services.user_service import get_user_by_telegram_id
-from loguru import logger
 
 
 SESSION_LABELS = {
@@ -20,62 +12,6 @@ SESSION_LABELS = {
     "qualifying_datetime": "Q",
     "race_datetime": "R",
 }
-
-
-def get_calendar_message(data):
-    """
-    Формирует сообщение календаря
-    """
-    text = f"Календарь формулы 1 2026\n\n"
-    for gp in data:
-        date = format_date(gp.date)
-        flag = GP_FLAGS.get(gp.name, "")
-        if gp.has_sprint:
-            text += (
-                f"{gp.round}. {flag} {gp.name} ({'спринт'})\n{gp.circuit.name} ({date})\n\n"
-            )
-        else:
-            text += (
-                    f"{gp.round}. {flag} {gp.name}\n{gp.circuit.name} ({date})\n\n"
-                )
-    return text
-
-
-def group_sessions_by_local_day(sessions, user_tz):
-    """
-    Групперует сессии и преобразует в timezone пользователя
-    """
-    sessions_by_day = defaultdict(list)
-    for field, dt in sessions:
-        local_dt = dt.astimezone(ZoneInfo(user_tz))
-        day_key = local_dt.date()
-        sessions_by_day[day_key].append((field, local_dt))
-
-    for day in sessions_by_day:
-        sessions_by_day[day].sort(key=lambda x: x[1])
-
-    return dict(sorted(sessions_by_day.items()))
-
-
-def get_next_race_message(next_gp, sessions):
-    """
-    Формирует сообщение о следующей гонке
-    """
-    flag = GP_FLAGS.get(next_gp.name, "")
-    text = (f'Round {next_gp.round} - {flag} {next_gp.name}\n'
-            f'{next_gp.circuit}\n\n')
-    
-    for day, session_list in sessions.items():
-        dt_sample = session_list[0][1]
-        weekday = dt_sample.strftime("%A")
-        date_str = dt_sample.strftime("%d %B")
-        text += f'{weekday} - {date_str}\n'
-
-        for field, dt in session_list:
-            session_name = SESSION_LABELS.get(field, field)
-            time = dt.strftime("%H:%M")
-            text += f'   {session_name} - {time}\n'
-    return text
 
 
 def get_all_races():
@@ -100,37 +36,43 @@ def get_upcoming_races():
     return data
 
 
-def get_next_race(user_id):
-    """
-    Возвращает информацию о следующей гонке
-    """
-    user = get_user_by_telegram_id(user_id)
-    if not user:
-        logger.warning(f"Пользователь {user_id} не найден") 
-        return None
-
-    user_tz = user.timezone
+def get_next_race():
     next_gp = GrandPrix.objects.select_related('circuit').filter(
         race_datetime__gte=timezone.now()
     ).order_by('race_datetime').first()
+    return next_gp
+
+
+def get_next_race_data(user_tz):
+    """
+    Возвращает информацию о следующей гонке для API
+    """
+    next_gp = get_next_race()
     if not next_gp:
-        return 'Сезон закончен или следующая гонка еще не определена'
+        return None
     
     sessions = []
     if next_gp.has_sprint:
-        for field in ["fp1_datetime", "sprint_qualifying_datetime", "sprint_datetime",
-                      "qualifying_datetime", "race_datetime"]:
-            dt = getattr(next_gp, field)
-            if dt:
-                sessions.append((field, dt))
+        session_fields = ["fp1_datetime", "sprint_qualifying_datetime", "sprint_datetime",
+                          "qualifying_datetime", "race_datetime"]
     else:
-        for field in ["fp1_datetime", "fp2_datetime", "fp3_datetime",
-                      "qualifying_datetime", "race_datetime"]:
-            dt = getattr(next_gp, field)
-            if dt:
-                sessions.append((field, dt))
+        session_fields = ["fp1_datetime", "fp2_datetime", "fp3_datetime",
+                          "qualifying_datetime", "race_datetime"]
     
-    sessions_by_day = group_sessions_by_local_day(sessions, user_tz)
-    next_race_message = get_next_race_message(next_gp, sessions_by_day)
+    for field in session_fields:
+        dt = getattr(next_gp, field)
+        if dt:
+            sessions.append({
+                "name": SESSION_LABELS.get(field, field),
+                "datetime": dt.isoformat(),
+                "local_datetime": dt.astimezone(ZoneInfo(user_tz)).isoformat(),
+            })
     
-    return next_race_message
+    return {
+        'round': next_gp.round,
+        'name': next_gp.name,
+        'circuit_name': next_gp.circuit.name,
+        'date': next_gp.date.isoformat(),
+        'has_sprint': next_gp.has_sprint,
+        'sessions': sessions,
+    }

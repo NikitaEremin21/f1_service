@@ -3,6 +3,7 @@ from aiogram.types import InlineKeyboardButton
 from core.models import GrandPrix
 from django.utils import timezone
 from loguru import logger
+from datetime import datetime
 
 
 SESSION_LABELS = {
@@ -23,7 +24,8 @@ def get_session_buttons(race):
     now = timezone.now()
     builder = InlineKeyboardBuilder()
 
-    if race.has_sprint:
+    has_sprint = race.get("has_sprint")
+    if has_sprint:
         sessions = [
             "fp1_datetime",
             "sprint_qualifying_datetime",
@@ -41,12 +43,13 @@ def get_session_buttons(race):
         ]
 
     for field in sessions:
-        session_time = getattr(race, field)
+        session_time = race.get(field)
+        session_time = datetime.fromisoformat(session_time)
         if session_time and session_time <= now:
             builder.add(
                 InlineKeyboardButton(
                     text=SESSION_LABELS.get(field, field),
-                    callback_data=f"session:{race.round}:{field}"
+                    callback_data=f"session:{race.get('round')}:{field}"
                 )
             )
 

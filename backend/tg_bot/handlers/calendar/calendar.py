@@ -1,15 +1,13 @@
 from aiogram import Router, F
 from aiogram.filters import Command
 from asgiref.sync import sync_to_async
-import loguru
+from loguru import logger
 from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from services.calendar_service import (
-    get_all_races,
-    get_calendar_message
-)
+from tg_bot.formatters.calendar_formatter import format_calendar_message
+from tg_bot.services.api_client import backend_client
 
 
 router = Router()
@@ -19,12 +17,14 @@ router = Router()
 @router.message(Command("calendar"))
 async def calendar_function(message):
     try:
-        data = await sync_to_async(get_all_races)()
-        calendar_text = get_calendar_message(data)
+        text = f"Календарь формулы 1 2026\n\n"
+        data = await backend_client.get_calendar()
+        calendar_text = format_calendar_message(data, text)
         await message.answer(
             calendar_text,
+            parse_mode="HTML",
             reply_markup=get_main_menu()
         )
     except Exception as e:
-        loguru.logger.error(f'Ошибка при получении календаря: {e}')
+        logger.error(f'Ошибка при получении календаря: {e}')
         await message.answer('Ошибка при получении календаря')
