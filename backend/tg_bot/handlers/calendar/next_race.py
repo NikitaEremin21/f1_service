@@ -1,6 +1,5 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from asgiref.sync import sync_to_async
 from loguru import logger
 from tg_bot.keyboards.reply import (
     get_main_menu,

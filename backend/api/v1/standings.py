@@ -10,7 +10,6 @@ from services.utils import (
     DRIVER_FLAGS,
     TEAMS_FLAGS
 )
-from asgiref.sync import sync_to_async
 
 
 router = Router()
@@ -53,7 +52,7 @@ async def get_drivers_standings_api(request):
     if not standings_drivers:
         return DriverStandingSchema(year=year, standings=[])
     
-    drivers_list = await sync_to_async(get_drivers_list, thread_sensitive=True)()
+    drivers_list = await get_drivers_list()
     drivers_dict = {driver.number: driver for driver in drivers_list}
 
     standings_list = []

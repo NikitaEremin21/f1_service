@@ -2,7 +2,6 @@ from ninja import Router
 from typing import List
 from pydantic import BaseModel
 from services.constructor_service import get_constructors_list
-from asgiref.sync import sync_to_async
 from services.utils import TEAMS_FLAGS
 
 
@@ -20,7 +19,7 @@ async def get_constructors_api(request):
     """
     Получить список команд
     """
-    constructors = await sync_to_async(get_constructors_list)()
+    constructors = await get_constructors_list()
     result = []
     for constructor in constructors:
         result.append(
