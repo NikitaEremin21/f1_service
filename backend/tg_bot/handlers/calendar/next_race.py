@@ -6,7 +6,6 @@ from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
 )
-from services.user_service import create_user
 from tg_bot.services.api_client import backend_client
 from tg_bot.states.registration import Registration
 from tg_bot.formatters.calendar_formatter import get_next_race_message
@@ -23,7 +22,7 @@ async def next_race(message, state):
         user = await backend_client.get_user(user_id)
         if not user:
             await state.set_state(Registration.waiting_for_city)
-            await sync_to_async(create_user)(
+            await backend_client.create_user(
                 telegram_id=message.from_user.id,
                 username=message.from_user.username,
                 first_name=message.from_user.first_name,

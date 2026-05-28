@@ -1,6 +1,5 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from asgiref.sync import sync_to_async
 from services.user_service import get_user_by_telegram_id, set_timezone
 from tg_bot.keyboards.inline import get_settings_keyboard
 from tg_bot.keyboards.reply.main_menu import MainMenuButtons, get_main_menu
@@ -45,8 +44,8 @@ async def process_new_city(message, state):
     user_id = message.from_user.id
     city = message.text.strip()
 
-    user = await sync_to_async(get_user_by_telegram_id)(user_id)
-    timezone = await sync_to_async(set_timezone)(user, city)
+    user = await get_user_by_telegram_id(user_id)
+    timezone = await set_timezone(user, city)
 
     if not timezone:
         await message.answer(
