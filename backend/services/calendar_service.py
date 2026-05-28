@@ -1,6 +1,7 @@
 from django.utils import timezone
 from core.models import GrandPrix
 from zoneinfo import ZoneInfo
+from channels.db import database_sync_to_async
 
 
 SESSION_LABELS = {
@@ -14,6 +15,7 @@ SESSION_LABELS = {
 }
 
 
+@database_sync_to_async
 def get_all_races():
     """
     Возвращает из базы данных все гонки
@@ -24,6 +26,7 @@ def get_all_races():
     return data
 
 
+@database_sync_to_async
 def get_upcoming_races():
     """
     Возвращает из базы данных все гонки, которые еще не прошли
@@ -36,6 +39,7 @@ def get_upcoming_races():
     return data
 
 
+@database_sync_to_async
 def get_next_race():
     next_gp = GrandPrix.objects.select_related('circuit').filter(
         race_datetime__gte=timezone.now()
@@ -43,11 +47,11 @@ def get_next_race():
     return next_gp
 
 
-def get_next_race_data(user_tz):
+async def get_next_race_data(user_tz):
     """
     Возвращает информацию о следующей гонке для API
     """
-    next_gp = get_next_race()
+    next_gp = await get_next_race()
     if not next_gp:
         return None
     
