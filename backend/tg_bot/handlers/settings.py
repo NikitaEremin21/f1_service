@@ -1,10 +1,10 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from services.user_service import get_user_by_telegram_id, set_timezone
 from tg_bot.keyboards.inline import get_settings_keyboard
 from tg_bot.keyboards.reply.main_menu import MainMenuButtons, get_main_menu
 from tg_bot.states.settings import SettingsCity
 from aiogram.types import ReplyKeyboardRemove
+from tg_bot.services.api_client import backend_client
 
 
 router = Router()
@@ -44,10 +44,9 @@ async def process_new_city(message, state):
     user_id = message.from_user.id
     city = message.text.strip()
 
-    user = await get_user_by_telegram_id(user_id)
-    timezone = await set_timezone(user, city)
+    user_data = await backend_client.set_user_timezone(user_id, city)
 
-    if not timezone:
+    if not user_data:
         await message.answer(
             "❌ Не удалось определить часовой пояс для этого города.\n"
             "Попробуйте еще раз."
@@ -55,7 +54,7 @@ async def process_new_city(message, state):
         return    
     
     await message.answer(
-        f"✅ Часовой пояс успешно обновлен: {timezone}\n\n"
+        f"✅ Часовой пояс успешно обновлен: {user_data.get('timezone')}\n\n"
         f"📍 Город: {city}",
         reply_markup=get_main_menu()
     )
