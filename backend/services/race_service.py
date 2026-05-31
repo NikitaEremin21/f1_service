@@ -1,7 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
 from core.models import GrandPrix
-from loguru import logger
+from channels.db import database_sync_to_async
 
 
 PRE_WEEKEND_WINDOW = timedelta(hours=12)
@@ -11,6 +11,7 @@ SPRINT_DURATION_HOURS = 2
 RACE_DURATION_HOURS = 4
 
 
+@database_sync_to_async
 def get_relevant_race():
     """
     Возвращает релевантный Гран-при для отображения результатов.
@@ -49,7 +50,8 @@ def get_relevant_race():
     
     return last_race
     
-    
+
+@database_sync_to_async
 def get_last_completed_race():
     """
     Возвращает последний Гран-при, у которого уже были начислены очки
@@ -79,3 +81,12 @@ def get_last_completed_race():
         return next_race, "Race"
     
     return last_race, "Race"
+
+
+@database_sync_to_async
+def get_race_by_round(round):
+    """
+    Возвращает Гран-при по номеру этапа с подгруженной информацией о трассе.
+    """
+    data = GrandPrix.objects.select_related("circuit").get(round=round)
+    return data

@@ -4,17 +4,37 @@ from loguru import logger
 
 
 class HttpClient:
+    """
+    HTTP клиент
+    """
     def __init__(self):
         self.session = None
 
     
     async def get_session(self):
-        if not self.session:
+        """
+        Получение сессии
+        """
+        if self.session is None:
             self.session = aiohttp.ClientSession()
+            logger.success("HTTP сессия создана")
         return self.session
     
 
+    async def close(self):
+        """
+        Закрытие сессии
+        """
+        if self.session:
+            await self.session.close()
+            logger.success("HTTP сессия закрыта")
+            self.session = None
+    
+
     async def get(self, url, params=None, retries=3):
+        """
+        GET запрос
+        """
         session = await self.get_session()
 
         for attempt in range(retries):
@@ -51,12 +71,6 @@ class HttpClient:
                 if attempt == retries - 1:
                     raise e
                 await asyncio.sleep(2 ** attempt)
-
-    
-    async def close(self):
-        if self.session:
-            await self.session.close()
-            self.session = None
 
 
 http_client = HttpClient()

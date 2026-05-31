@@ -1,10 +1,8 @@
 from aiogram import Router
 from aiogram.filters import CommandStart
-from aiogram.fsm.context import FSMContext
 from tg_bot.states.registration import Registration
 from tg_bot.keyboards.reply import get_main_menu
 from tg_bot.services.api_client import backend_client
-from loguru import logger
 
 
 router = Router()
@@ -30,7 +28,6 @@ async def user_city_handler(message, state):
 
     tg_id = message.from_user.id
     text = message.text
-    logger.info(f"User {tg_id} entered city: {text}")
     result = await backend_client.set_user_timezone(tg_id, text)
     
     if not result or not result.get("timezone"):

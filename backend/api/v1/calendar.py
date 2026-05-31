@@ -7,7 +7,6 @@ from services.calendar_service import (
     get_upcoming_races,
     get_next_race_data,
 )
-from asgiref.sync import sync_to_async
 
 
 router = Router()
@@ -45,7 +44,7 @@ async def get_calendar_api(request):
     """
     Получить календарь гонок
     """
-    races = await sync_to_async(get_all_races)()
+    races = await get_all_races()
 
     result = []
     for race in races:
@@ -70,7 +69,7 @@ async def get_upcoming_races_api(request):
     """
     Получить календарь гонок
     """
-    races = await sync_to_async(get_upcoming_races)()
+    races = await get_upcoming_races()
 
     result = []
     for race in races:
@@ -95,6 +94,6 @@ async def get_next_race_api(request, user_tz):
     """
     Получить информацию о следующей гонке
     """
-    next_race = await sync_to_async(get_next_race_data)(user_tz)
+    next_race = await get_next_race_data(user_tz)
     
     return next_race

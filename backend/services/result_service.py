@@ -4,7 +4,6 @@ from services.openf1_service import (
     get_results,
     get_driver
 )
-from asgiref.sync import sync_to_async
 
 
 def format_qualifying_time(seconds):
@@ -38,7 +37,7 @@ async def get_practice_results(session_key):
     """
     session_data = await get_results(session_key)
 
-    drivers_list = await sync_to_async(get_drivers_list)()
+    drivers_list = await get_drivers_list()
     drivers = {driver.number: driver for driver in drivers_list}
 
     drivers_info = await get_driver(session_key)
@@ -114,7 +113,7 @@ async def get_qualifying_results(session_key):
     session_data = await get_results(session_key)
     results_by_number = {r['driver_number']: r for r in session_data}
 
-    drivers_list = await sync_to_async(get_drivers_list)()
+    drivers_list = await get_drivers_list()
 
     pole_time = None
     pole_driver = None
@@ -193,7 +192,7 @@ async def get_race_results(session_key):
     session_data = await get_results(session_key)
     results_by_number = {r['driver_number']: r for r in session_data}
 
-    drivers_list = await sync_to_async(get_drivers_list)()
+    drivers_list = await get_drivers_list()
 
     driver_results = []
     for driver in drivers_list:

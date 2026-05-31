@@ -2,7 +2,6 @@ from ninja import Router
 from typing import List
 from pydantic import BaseModel
 from services.driver_service import get_drivers_list
-from asgiref.sync import sync_to_async
 from services.utils import DRIVER_FLAGS
 
 
@@ -22,7 +21,7 @@ async def get_drivers_api(request):
     """
     Получить список пилотов
     """
-    drivers = await sync_to_async(get_drivers_list)()
+    drivers = await get_drivers_list()
     result = []
     for driver in drivers:
         team_name = driver.team.name if driver.team else 'Нет команды'

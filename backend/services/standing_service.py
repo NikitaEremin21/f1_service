@@ -6,7 +6,6 @@ from services.openf1_service import (
 )
 from services.race_service import get_last_completed_race
 from loguru import logger
-from asgiref.sync import sync_to_async
 
 
 async def get_drivers_standings():
@@ -14,7 +13,7 @@ async def get_drivers_standings():
     Загружает зачет пилотов
     """
     try:
-        race, session_name = await sync_to_async(get_last_completed_race)()
+        race, session_name = await get_last_completed_race()
 
         if race is None:
             return 0, []
@@ -42,7 +41,7 @@ async def get_teams_standings():
     Загружает кубок конструкторов
     """
     try:
-        race, session_name = await sync_to_async(get_last_completed_race)()
+        race, session_name = await get_last_completed_race()
 
         if race is None:
             return 0, []

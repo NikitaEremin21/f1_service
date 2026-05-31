@@ -1,12 +1,12 @@
 from ninja import Router
 from typing import List, Optional
 from pydantic import BaseModel
-from asgiref.sync import sync_to_async
 from services.race_service import get_relevant_race
 from datetime import datetime
 from core.models import GrandPrix
 from services.utils import SESSION_MAP, PRACTICE_SESSIONS
 from services.openf1_service import get_meeting_key, get_session_key
+from services.race_service import get_race_by_round
 from services.result_service import (
     get_practice_results,
     get_qualifying_results,
@@ -79,7 +79,7 @@ async def get_relevant_race_api(request):
     """
     Получить релевантный Гран-при для отображения результатов
     """
-    race = await sync_to_async(get_relevant_race)()
+    race = await get_relevant_race()
     
     if not race:
         return None
@@ -103,7 +103,7 @@ async def get_session_results_api(request, round, session):
     """
     Получить результаты сессии
     """
-    race = await sync_to_async(GrandPrix.objects.select_related("circuit").get)(round=round)
+    race = await get_race_by_round(round)
     session_name = SESSION_MAP.get(session)
     meeting_key = await get_meeting_key(race.name, race.year)
     session_key = await get_session_key(meeting_key, session_name, race.year)

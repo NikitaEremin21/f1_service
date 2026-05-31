@@ -2,6 +2,7 @@ from datetime import timedelta
 from timezonefinder import TimezoneFinder
 from geopy.geocoders import Nominatim
 from loguru import logger
+from asgiref.sync import sync_to_async
 
 
 geolocator = Nominatim(user_agent="f1_service")
@@ -95,10 +96,13 @@ PRACTICE_SESSIONS = [
 ]
 
 
-def get_timezone_by_city(city):
+async def get_timezone_by_city(city):
+    """
+    Получение часового пояса по городу
+    """
     city = city.strip().lower()
     try:
-        location = geolocator.geocode(city)
+        location = await sync_to_async(geolocator.geocode)(city)
         if not location:
             return None
         
@@ -114,6 +118,9 @@ def get_timezone_by_city(city):
     
 
 def format_date(date):
+    """
+    Форматирует диапазон дат для отображения в календаре гонок
+    """
     month_map = {
         'Jan': 'янв', 'Feb': 'фев', 'Mar': 'мар', 'Apr': 'апр',
         'May': 'май', 'Jun': 'июн', 'Jul': 'июл', 'Aug': 'авг',
