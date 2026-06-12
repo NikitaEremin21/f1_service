@@ -210,7 +210,7 @@ async def get_race_results(session_key):
                 if gap == 0:
                     gap_display = "-"
             else:
-                gap_display = str(gap)
+                gap_display = "DNF" if gap is None else str(gap)
 
             duration = driver_result.get("duration")
             if duration and position == 1:
