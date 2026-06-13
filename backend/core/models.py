@@ -1,4 +1,5 @@
 from django.db import models
+from services.utils import SESSION_MAP
 
 
 class Constructor(models.Model):
@@ -81,3 +82,16 @@ class User(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class NotificationLog(models.Model):
+
+    SESSION_CHOICES = [(key, value) for key, value in SESSION_MAP.items()]
+
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    race = models.ForeignKey('GrandPrix', on_delete=models.CASCADE)
+    session_type = models.CharField(max_length=30, choices=SESSION_CHOICES)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'race', 'session_type']

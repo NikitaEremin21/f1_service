@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Load environment variables from .env file
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
@@ -24,6 +25,8 @@ else:
 load_dotenv(env_file)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 # Quick-start development settings - unsuitable for production
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
     'tg_bot.apps.TgBotConfig',
+    'celery_tasks',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +146,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BEAT_SCHEDULE = {
+    'check-notifications-every-5-minutes': {
+        'task': 'celery_tasks.notifications.check_and_send_notifications',
+        'schedule': crontab(minute='*/2'),
+    },
+}
