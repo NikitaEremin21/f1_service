@@ -2,6 +2,16 @@ from django.db import models
 from services.utils import SESSION_MAP
 
 
+class SessionType(models.TextChoices):
+    FP1 = 'fp1', 'FP1'
+    FP2 = 'fp2', 'FP2'
+    FP3 = 'fp3', 'FP3'
+    SPRINT_QUALIFYING = 'sprint_qualifying', 'Sprint Qualifying'
+    SPRINT = 'sprint', 'Sprint'
+    QUALIFYING = 'qualifying', 'Qualifying'
+    RACE = 'race', 'Race'
+
+
 class Constructor(models.Model):
     ref = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
@@ -80,18 +90,43 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    notifications_enabled = models.BooleanField(default=True)
+
     class Meta:
         ordering = ['-created_at']
 
 
 class NotificationLog(models.Model):
-
-    SESSION_CHOICES = [(key, value) for key, value in SESSION_MAP.items()]
-
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     race = models.ForeignKey('GrandPrix', on_delete=models.CASCADE)
-    session_type = models.CharField(max_length=30, choices=SESSION_CHOICES)
+    session_type = models.CharField(max_length=30, choices=SessionType.choices)
+    reminder_time = models.PositiveSmallIntegerField(default=60)
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ['user', 'race', 'session_type']
+
+
+class UserSessionSubscription(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='subscriptions')
+    session_type = models.CharField(max_length=30, choices=SessionType.choices)
+    reminder_time = models.PositiveIntegerField(
+        choices=[
+            (120, '120 минут'),
+            (60, '60 минут'),
+            (30, '30 минут'),
+            (20, '20 минут'),
+            (15, '15 минут'),
+            (10, '10 минут'),
+        ]
+    )
+
+    class Meta:
+        unique_together = [('user', 'session_type', 'reminder_time')]
+        indexes = [
+            models.Index(fields=['session_type']),
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.session_type} ({self.reminder_time})"
