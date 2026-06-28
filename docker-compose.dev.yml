@@ -24,36 +24,44 @@ services:
       - f1_network
 
   celery_worker:
-    image: python:3.11-slim
+    build: .
     container_name: f1_celery_worker_dev
     restart: always
     command: ["celery", "-A", "backend", "worker", "-l", "info"]
     env_file:
       - .env.dev
-    volumes:
-      - ../backend:/app/backend
-    working_dir: /app/backend
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - db
       - redis
     networks:
       - f1_network
+    volumes:
+      - .:/app
 
   celery_beat:
-    image: python:3.11-slim
+    build: .
     container_name: f1_celery_beat_dev
     restart: always
     command: ["celery", "-A", "backend", "beat", "-l", "info"]
     env_file:
       - .env.dev
-    volumes:
-      - ../backend:/app/backend
-    working_dir: /app/backend
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - db
       - redis
     networks:
       - f1_network
+    volumes:
+      - .:/app
     
 
 volumes:
