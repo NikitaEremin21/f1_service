@@ -138,6 +138,36 @@ class BackendClient:
             "telegram_id": telegram_id,
             "city": city
         })
+    
+
+    async def get_notifications(self, telegram_id):
+        """
+        Получить текущие настройки уведомлений пользователя
+        """
+        url = f"{self.base_url}/users/{telegram_id}/notifications"
+        return await http_client.get(url)
+    
+
+    async def sync_notifications(self, telegram_id: int, enabled_sessions: list, enabled_reminders: list):
+        """Полная синхронизация настроек уведомлений"""
+        url = f"{self.base_url}/users/{telegram_id}/notifications/sync"
+        data = {
+            "enabled_sessions": enabled_sessions,
+            "enabled_reminders": enabled_reminders
+        }
+        return await http_client.post(url, json=data)
+    
+
+    async def update_notifications(self, telegram_id, type, value, enabled):
+        """
+        Обновить настройки уведомлений пользователя
+        """
+        url = f"{self.base_url}/users/{telegram_id}/notifications"
+        return await http_client.patch(url, json={
+            "type": type,
+            "value": value,
+            "enabled": enabled
+        })
 
 
 backend_client = BackendClient()

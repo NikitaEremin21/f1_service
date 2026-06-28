@@ -6,6 +6,7 @@ from .calendar import router as calendar_router
 from .results import router as results_router
 from .standings import router as standings_router
 from .settings import router as settings_router
+from .notifications import router as notifications_router
 
 
 router = Router()
@@ -17,3 +18,4 @@ router.include_router(calendar_router)
 router.include_router(results_router)
 router.include_router(standings_router)
 router.include_router(settings_router)
+router.include_router(notifications_router)

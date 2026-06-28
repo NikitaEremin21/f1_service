@@ -104,7 +104,7 @@ class NotificationLog(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['user', 'race', 'session_type']
+        unique_together = ['user', 'race', 'session_type', 'reminder_time']
 
 
 class UserSessionSubscription(models.Model):

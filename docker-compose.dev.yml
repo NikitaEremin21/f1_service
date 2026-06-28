@@ -30,11 +30,18 @@ services:
     command: ["celery", "-A", "backend", "worker", "-l", "info"]
     env_file:
       - .env.dev
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - db
       - redis
     networks:
       - f1_network
+    volumes:
+      - .:/app
 
   celery_beat:
     build: .
@@ -43,11 +50,18 @@ services:
     command: ["celery", "-A", "backend", "beat", "-l", "info"]
     env_file:
       - .env.dev
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - db
       - redis
     networks:
       - f1_network
+    volumes:
+      - .:/app
     
 
 volumes:

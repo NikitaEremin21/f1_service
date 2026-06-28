@@ -148,8 +148,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BEAT_SCHEDULE = {
-    'check-notifications-every-5-minutes': {
+    'check-notifications-every-minute': {
         'task': 'celery_tasks.notifications.check_and_send_notifications',
-        'schedule': crontab(minute='*/2'),
+        'schedule': crontab(minute='*'),
     },
 }
