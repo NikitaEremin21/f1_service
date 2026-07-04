@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Optional
 from ninja import Router
 from pydantic import BaseModel
 from ninja.errors import HttpError
@@ -20,8 +20,8 @@ router = Router()
 
 class UserCreateSchema(BaseModel):
     telegram_id: int
-    username: str
-    first_name: str
+    username: Optional[str] = None
+    first_name: Optional[str] = None
 
 
 class UserResponseSchema(BaseModel):
