@@ -9,3 +9,11 @@ def preload_session_data_task():
     Запуск задачи на предзагрузку данных сессий
     """
     asyncio.run(PreloadService.preload_session_data())
+
+
+@shared_task
+def preload_standings_task():
+    """
+    Запуск задачи для предзагрузки таблиц пилотов и контрактов
+    """
+    asyncio.run(PreloadService.preload_standings_data())

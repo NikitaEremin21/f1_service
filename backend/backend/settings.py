@@ -152,6 +152,10 @@ CELERY_BEAT_SCHEDULE = {
         'task':'celery_tasks.preload.preload_session_data_task',
         'schedule': crontab(minute='*/10'),
     },
+    'preload-standings-data': {
+        'task': 'celery_tasks.preload.preload_standings_task',
+        'schedule': crontab(minute='*/10')
+    },
     'check-notifications-every-minute': {
         'task': 'celery_tasks.notifications.check_and_send_notifications',
         'schedule': crontab(minute='*'),
