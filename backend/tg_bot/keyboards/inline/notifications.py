@@ -17,6 +17,8 @@ ALL_REMINDERS = [120, 60, 30, 20, 15, 10]
 def get_notifications_keyboard(enabled_sessions, enabled_reminders):
     builder = InlineKeyboardBuilder()
 
+    builder.add(InlineKeyboardButton(text="Сессии для напоминаний:", callback_data="ignore"))
+
     for session_key, session_label in ALL_SESSIONS:
         is_enabled = session_key in enabled_sessions
         icon = "✅" if is_enabled else "❌"
@@ -26,7 +28,7 @@ def get_notifications_keyboard(enabled_sessions, enabled_reminders):
             callback_data=callback
         ))
 
-    builder.add(InlineKeyboardButton(text="----------------", callback_data="ignore"))
+    builder.add(InlineKeyboardButton(text="Время напоминаний:", callback_data="ignore"))
 
     for reminder in ALL_REMINDERS:
         is_enabled = reminder in enabled_reminders
@@ -42,5 +44,5 @@ def get_notifications_keyboard(enabled_sessions, enabled_reminders):
         callback_data="notif_back",
     ))
 
-    builder.adjust(3, 3, 1, 1, 3, 3, 1)
+    builder.adjust(1, 3, 2, 2, 1, 3, 3, 1)
     return builder.as_markup()
