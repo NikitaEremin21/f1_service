@@ -1,6 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
+from services.cache.redis_cache import redis_client
 
 
 class PreloadService():
@@ -63,6 +64,9 @@ class PreloadService():
         
             session_name = SESSION_MAP.get(session_type)
             session_key = await get_session_key(meeting_key, session_name, race.year)
+
+            await redis_client.delete(f'openf1:session_result:{session_key}')
+            await redis_client.delete(f'openf1:driver:{session_key}')
 
             if session_type in PRACTICE_SESSIONS:
                 await get_practice_results(session_key)
@@ -135,7 +139,11 @@ class PreloadService():
         try:
             meeting_key = await get_meeting_key(race.name, race.year)
             session_key = await get_session_key(meeting_key, session_type, race.year)
+
+            await redis_client.delete(f'openf1:championship_drivers:{session_key}')
+            await redis_client.delete(f'openf1:championship_teams:{session_key}')
+
             await get_championship_drivers(session_key)
             await get_championship_teams(session_key)
         except Exception as e:
-            logger.error(f"При загрузке данных проишла ошибка: {e}")
+            logger.error(f"При загрузке данных произошла ошибка: {e}")
