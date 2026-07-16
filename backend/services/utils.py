@@ -18,7 +18,7 @@ GP_FLAGS = {
     "Miami Grand Prix": "🇺🇸",
     "Canadian Grand Prix": "🇨🇦",
     "Monaco Grand Prix": "🇲🇨",
-    "Barcelona‑Catalunya Grand Prix": "🇪🇸",
+    "Barcelona Grand Prix": "🇪🇸",
     "Austrian Grand Prix": "🇦🇹",
     "British Grand Prix": "🇬🇧",
     "Belgian Grand Prix": "🇧🇪",

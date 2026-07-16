@@ -21,6 +21,7 @@ def format_calendar_message(races, text):
     """
     Формирует сообщение календаря
     """
+    text += "<pre>"
     for race in races:
         if isinstance(race['date'], str):
             date_obj = datetime.strptime(race['date'], '%Y-%m-%d').date()
@@ -31,12 +32,13 @@ def format_calendar_message(races, text):
         circuit_name = race.get('circuit_name', 'Неизвестно')
         if race['has_sprint']:
             text += (
-                f"{race['round']}. {flag} {race['name']} ({'спринт'})\n{circuit_name} ({date})\n\n"
+                f"{race['round']:>2}. {flag} {race['name']:<24} ({'спринт'})\n       {date}\n"
             )
         else:
             text += (
-                    f"{race['round']}. {flag} {race['name']}\n{circuit_name} ({date})\n\n"
-                )
+                f"{race['round']:>2}. {flag} {race['name']:<24}\n       {date}\n"
+            )
+    text += "</pre>"
     return text
 
 
