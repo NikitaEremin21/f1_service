@@ -66,11 +66,11 @@ DRIVER_FLAGS = {
 TEAMS_FLAGS = {
     "Mercedes": "🇩🇪",
     "Ferrari": "🇮🇹",
-    "Red Bull Racing": "🇦🇹",
+    "Red Bull": "🇦🇹",
     "McLaren": "🇬🇧",
     "Aston Martin": "🇬🇧",
     "Alpine": "🇫🇷",
-    "Haas F1 Team": "🇺🇸",
+    "Haas": "🇺🇸",
     "Williams": "🇬🇧",
     "Audi": "🇩🇪",
     "Racing Bulls": "🇮🇹",

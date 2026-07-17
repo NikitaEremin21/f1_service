@@ -39,7 +39,7 @@ class PreloadService():
             return
 
         time_until_next = next_session_time - now
-        if time_until_next > timedelta(minutes=30):
+        if time_until_next > timedelta(minutes=60):
             return
 
         for field in session_fields:
@@ -116,7 +116,7 @@ class PreloadService():
             return
 
         time_until_next = next_session_time - now
-        if time_until_next > timedelta(minutes=30):
+        if time_until_next > timedelta(minutes=60):
             return
         
         race_for_standings, session_type = await get_last_completed_race()
