@@ -2,7 +2,7 @@ from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
 from tg_bot.services.telegram_services import send_message
-from services.utils import SESSION_MAP
+from services.utils import SESSION_MAP, GP_FLAGS
 from channels.db import database_sync_to_async
 from django.db.models import Q
 from django.db import models
@@ -96,8 +96,8 @@ class NotificationService:
     
     def _send_notification(self, user, race, session_type, reminder_time):
         message = (
-            f"🏁 {race.name} – {SESSION_MAP.get(session_type, session_type)}\n"
-            f"Начнётся через {reminder_time} мин."
+            f"{GP_FLAGS.get(race.name, '🏁') } <b>{SESSION_MAP.get(session_type, session_type)} через {reminder_time} мин.</b>\n"
+            f"{race.name}"
         )
         try:
             send_message(user.telegram_id, message)
