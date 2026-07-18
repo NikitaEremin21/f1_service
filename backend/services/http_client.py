@@ -9,15 +9,34 @@ class HttpClient:
     """
     def __init__(self):
         self.session = None
+        self.loop = None
 
     
     async def get_session(self):
         """
         Получение сессии
         """
+        current_loop = asyncio.get_running_loop()
+
         if self.session is None:
             self.session = aiohttp.ClientSession()
+            self.loop = current_loop
             logger.success("HTTP сессия создана")
+            return self.session
+        
+        if self.loop is not current_loop:
+            logger.info("Обнаружен новый event loop. Пересоздаем HTTP сессию.")
+            try:
+                if not self.session.closed:
+                    await self.session.close()
+            except Exception as e:
+                logger.error(f"Ошибка при закрытии старой сессии: {e}")
+
+
+            self.session = aiohttp.ClientSession()
+            self.loop = current_loop
+            logger.success("HTTP сессия обновлена")
+        
         return self.session
     
 
@@ -25,11 +44,12 @@ class HttpClient:
         """
         Закрытие сессии
         """
-        if self.session:
+        if self.session and not self.session.closed:
             await self.session.close()
             logger.success("HTTP сессия закрыта")
-            self.session = None
-    
+        self.session = None
+        self.loop = None
+
 
     async def get(self, url, params=None, retries=3):
         """
