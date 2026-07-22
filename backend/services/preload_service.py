@@ -59,6 +59,10 @@ class PreloadService():
         from services.result_service import get_practice_results, get_qualifying_results, get_race_results
         
         session_type = field.replace('_datetime', '')
+        if await PreloadService._is_preloaded_session(race, session_type):
+            logger.info(f"{race.name} {session_type} уже предзагружена")
+            return
+        
         try:
             meeting_key = await get_meeting_key(race.name, race.year)
         
@@ -74,9 +78,27 @@ class PreloadService():
                 await get_qualifying_results(session_key)
             else: 
                 await get_race_results(session_key)
-
+            await PreloadService._mark_preloaded_session(race, session_type)
         except Exception as e:
             logger.error(f"Ошибка предзагрузки {race.name} – {session_type}: {e}")
+
+
+    @staticmethod
+    def _session_preload_key(race, session_type):
+        return f"preload:session:{race.year}:{race.name}:{session_type}"
+    
+
+    @staticmethod
+    async def _is_preloaded_session(race, session_type):
+        key = PreloadService._session_preload_key(race, session_type)
+        cached = await redis_client.get(key)
+        return cached is not None
+
+
+    @staticmethod
+    async def _mark_preloaded_session(race, session_type):
+        key = PreloadService._session_preload_key(race, session_type)
+        await redis_client.set(key, "1", 12600)
 
 
     @staticmethod
@@ -135,15 +157,47 @@ class PreloadService():
         """
         from services.openf1_service import get_meeting_key, get_session_key
         from services.standing_service import get_championship_drivers, get_championship_teams
-
+        
+        drivers_loaded = await PreloadService._is_preloaded_standings(
+            race, "championship_drivers"
+        )
+        teams_loaded = await PreloadService._is_preloaded_standings(
+            race, "championship_teams"
+        )
+        if drivers_loaded and teams_loaded:
+            logger.info("Таблицы уже предзагружены")
+            return
+        
         try:
             meeting_key = await get_meeting_key(race.name, race.year)
             session_key = await get_session_key(meeting_key, session_type, race.year)
 
-            await redis_client.delete(f'openf1:championship_drivers:{session_key}')
-            await redis_client.delete(f'openf1:championship_teams:{session_key}')
+            if not drivers_loaded:
+                await redis_client.delete(f'openf1:championship_drivers:{session_key}')
+                await get_championship_drivers(session_key)
+                await PreloadService._mark_preloaded_standings(race, "championship_drivers")
 
-            await get_championship_drivers(session_key)
-            await get_championship_teams(session_key)
+            if not teams_loaded:
+                await redis_client.delete(f'openf1:championship_teams:{session_key}')
+                await get_championship_teams(session_key)
+                await PreloadService._mark_preloaded_standings(race, "championship_teams")
         except Exception as e:
             logger.error(f"При загрузке данных произошла ошибка: {e}")
+
+
+    @staticmethod
+    def _standings_preload_key(race, standings_type):
+        return f"preload:{standings_type}:{race.year}:{race.name}"
+
+
+    @staticmethod
+    async def _is_preloaded_standings(race, standings_type):
+        key = PreloadService._standings_preload_key(race, standings_type)
+        cached = await redis_client.get(key)
+        return cached is not None
+
+
+    @staticmethod
+    async def _mark_preloaded_standings(race, standings_type):
+        key = PreloadService._standings_preload_key(race, standings_type)
+        await redis_client.set(key, "1", 12600)
