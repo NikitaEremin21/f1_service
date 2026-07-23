@@ -12,7 +12,7 @@ from services.notification_service import (
     delete_all_subscriptions,
     create_subscriptions
 )
-from core.models import SessionType, UserSessionSubscription
+from core.models import SessionType
 
 
 router = Router()
@@ -26,8 +26,8 @@ class UserCreateSchema(BaseModel):
 
 class UserResponseSchema(BaseModel):
     telegram_id: int
-    username: str
-    first_name: str
+    username: Optional[str] = None
+    first_name: Optional[str] = None
     timezone: str
 
 
