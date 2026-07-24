@@ -1,5 +1,5 @@
 from services.driver_service import get_drivers_list
-from services.utils import DRIVER_FLAGS
+from services.utils import DRIVER_FLAGS, TEAMS_DISPLAY_NAMES
 from services.openf1_service import (
     get_results,
     get_driver
@@ -62,7 +62,8 @@ async def get_practice_results(session_key):
         
         if driver:
             driver_code = driver.code
-            team_name = driver.team.name if driver.team else "-"
+            team_name_raw = driver.team.name if driver.team else "-"
+            team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
             flag = DRIVER_FLAGS.get(driver_code, "")
             first_name = driver.first_name
             last_name = driver.last_name
@@ -70,7 +71,8 @@ async def get_practice_results(session_key):
             driver_info = drivers_info_dict.get(driver_number)
             if driver_info:
                 driver_code = driver_info.get("name_acronym", f"#{driver_number}")
-                team_name = driver_info.get("team_name", "-")
+                team_name_raw = driver_info.get("team_name", "-") if driver_info else "-"
+                team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
                 first_name = driver_info.get("first_name", "")
                 last_name = driver_info.get("last_name", "")
             else:
@@ -154,13 +156,15 @@ async def get_qualifying_results(session_key):
                 time_display = "No time"
                 gap_display = "-"
 
+            team_name_raw = driver.team.name if driver.team else "-"
+            team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
             driver_results.append(
                 {
                     "position": position,
                     "driver_code": driver.code,
                     "first_name": driver.first_name,
                     "last_name": driver.last_name,
-                    "team_name": driver.team.name if driver.team else "-",
+                    "team_name": team_name,
                     "flag": DRIVER_FLAGS.get(driver.code, ""),
                     "segment": segment,
                     "time": time_display,
@@ -168,13 +172,15 @@ async def get_qualifying_results(session_key):
                 }
             )
         else:
+            team_name_raw = driver.team.name if driver.team else "-"
+            team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
             driver_results.append(
                 {
                     "position": 999,
                     "driver_code": driver.code,
                     "first_name": driver.first_name,
                     "last_name": driver.last_name,
-                    "team_name": driver.team.name if driver.team else "-",
+                    "team_name": team_name,
                     "flag": DRIVER_FLAGS.get(driver.code, ""),
                     "segment": "Q1",
                     "time": "No time",
@@ -218,13 +224,15 @@ async def get_race_results(session_key):
             else:
                 time_display = gap_display
 
+            team_name_raw = driver.team.name if driver.team else "-"
+            team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
             driver_results.append(
                 {
                     "position": position,
                     "driver_code": driver.code,
                     "first_name": driver.first_name,
                     "last_name": driver.last_name,
-                    "team_name": driver.team.name if driver.team else "-",
+                    "team_name": team_name,
                     "flag": DRIVER_FLAGS.get(driver.code, ""),
                     "points": int(points),
                     "time": time_display,
@@ -233,13 +241,15 @@ async def get_race_results(session_key):
                 }
             )
         else:
+            team_name_raw = driver.team.name if driver.team else "-"
+            team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
             driver_results.append(
                 {
                     "position": 999,
                     "driver_code": driver.code,
                     "first_name": driver.first_name,
                     "last_name": driver.last_name,
-                    "team_name": driver.team.name if driver.team else "-",
+                    "team_name": team_name,
                     "flag": DRIVER_FLAGS.get(driver.code, ""),
                     "points": 0,
                     "time": "DNF",

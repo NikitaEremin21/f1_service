@@ -59,7 +59,12 @@ DRIVER_FLAGS = {
     "GAS": "🇫🇷",
     "COL": "🇦🇷",
     "PER": "🇲🇽",
-    "BOT": "🇫🇮",    
+    "BOT": "🇫🇮",
+    "VES": "🇩🇰",
+    "FOR": "🇮🇹",
+    "HIR": "🇯🇵",
+    "ARO": "🇪🇪",
+    "HER": "🇺🇸",    
 }
 
 
@@ -75,6 +80,12 @@ TEAMS_FLAGS = {
     "Audi": "🇩🇪",
     "Racing Bulls": "🇮🇹",
     "Cadillac": "🇺🇸",
+}
+
+
+TEAMS_DISPLAY_NAMES = {
+    "Red Bull Racing": "Red Bull",
+    "Haas F1 Team": "Haas",
 }
 
 

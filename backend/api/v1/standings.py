@@ -8,7 +8,8 @@ from services.standing_service import (
 from services.driver_service import get_drivers_list
 from services.utils import (
     DRIVER_FLAGS,
-    TEAMS_FLAGS
+    TEAMS_FLAGS,
+    TEAMS_DISPLAY_NAMES,
 )
 
 
@@ -92,11 +93,13 @@ async def get_constructors_standings_api(request):
     
     standings_list = []
     for standing in standings_teams:
+        api_team_name = standing.get("team_name", "")
+        display_name = TEAMS_DISPLAY_NAMES.get(api_team_name, api_team_name)
         standings_list.append(
             TeamsSchema(
                 position=standing.get("position_current", 0),
-                flag=TEAMS_FLAGS.get(standing.get("team_name", ""), ""),
-                team_name=standing.get("team_name", ""),
+                flag=TEAMS_FLAGS.get(display_name),
+                team_name=display_name,
                 points=int(standing.get("points_current", 0)) if standing.get("points_current") is not None else 0,
             )
         )
