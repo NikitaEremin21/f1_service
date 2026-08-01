@@ -27,7 +27,7 @@ services:
     build: .
     container_name: f1_celery_worker_dev
     restart: always
-    command: ["celery", "-A", "backend", "worker", "-l", "info"]
+    command: ["celery", "-A", "backend", "worker", "-l", "info", "-c", "1"]
     env_file:
       - .env.dev
     environment:

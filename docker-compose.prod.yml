@@ -24,7 +24,7 @@ services:
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
-             uvicorn backend.asgi:application --host 0.0.0.0 --port 8000 --workers 4"
+             uvicorn backend.asgi:application --host 0.0.0.0 --port 8000 --workers 1"
     env_file:
       - .env.prod
     volumes:
@@ -39,7 +39,7 @@ services:
     build: .
     container_name: f1_celery_worker_prod
     restart: always
-    command: ["celery", "-A", "backend", "worker", "-l", "info"]
+    command: ["celery", "-A", "backend", "worker", "-l", "info", "-c", "1"]
     env_file:
       - .env.prod
     depends_on:
