@@ -88,5 +88,7 @@ def get_race_by_round(round):
     """
     Возвращает Гран-при по номеру этапа с подгруженной информацией о трассе.
     """
-    data = GrandPrix.objects.select_related("circuit").get(round=round)
-    return data
+    try:
+        return GrandPrix.objects.select_related("circuit").get(round=round)
+    except GrandPrix.DoesNotExist:
+        return None
