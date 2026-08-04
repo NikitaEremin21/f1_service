@@ -4,6 +4,7 @@ from services.openf1_service import (
     get_results,
     get_driver
 )
+from loguru import logger
 
 
 def format_qualifying_time(seconds):
@@ -36,7 +37,10 @@ async def get_practice_results(session_key):
     Получает результаты свободных практик
     """
     session_data = await get_results(session_key)
-
+    if not session_data:
+        logger.warning(f"Нет данных практики для session_key={session_key}")
+        return []
+    
     drivers_list = await get_drivers_list()
     drivers = {driver.number: driver for driver in drivers_list}
 
@@ -113,8 +117,11 @@ async def get_qualifying_results(session_key):
     Получает результаты квалификации для конкретного раунда и сессии
     """
     session_data = await get_results(session_key)
+    if not session_data:
+        logger.warning(f"Нет данных квалификации для session_key={session_key}")
+        return []
+    
     results_by_number = {r['driver_number']: r for r in session_data}
-
     drivers_list = await get_drivers_list()
 
     pole_time = None
@@ -196,6 +203,10 @@ async def get_race_results(session_key):
     Получает результаты гонки или спринта для конкретного раунда и сессии
     """
     session_data = await get_results(session_key)
+    if not session_data:
+        logger.warning(f"Нет данных гонки для session_key={session_key}")
+        return []
+    
     results_by_number = {r['driver_number']: r for r in session_data}
 
     drivers_list = await get_drivers_list()
