@@ -83,7 +83,7 @@ async def get_relevant_race_api(request):
     race = await get_relevant_race()
     
     if not race:
-        return None
+        raise HttpError(404, "Гран-при не найден")
     
     return RaceSchema(
         round=race.round,

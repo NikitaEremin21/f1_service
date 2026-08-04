@@ -93,8 +93,6 @@ class BackendClient:
         """
         url = f"{self.base_url}/results/relevant_race"
         data = await http_client.get(url)
-        if not data:
-            return None
         return data
     
 

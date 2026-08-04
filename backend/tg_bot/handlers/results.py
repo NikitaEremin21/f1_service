@@ -13,6 +13,7 @@ from tg_bot.formatters.results_formatter import (
     get_format_qualifying_message,
     get_format_race_message
 )
+from aiohttp import ClientResponseError
 
 
 router = Router()
@@ -22,16 +23,7 @@ router = Router()
 @router.message(Command("results"))
 async def results_menu(message):
     try:
-        race = await backend_client.get_relevant_race()
-
-        if race is None:
-            await message.answer(
-                "🏁 Информация о гонках пока недоступна.\n\n"
-                "Сезон еще не начался или данные загружаются.",
-                reply_markup=get_main_menu()
-            )
-            return
-        
+        race = await backend_client.get_relevant_race()        
         keyboard = get_session_buttons(race)
         race_name = race.get("name") 
         if keyboard:
@@ -41,6 +33,16 @@ async def results_menu(message):
             )
         else:
             await message.answer(f"🏁 {race_name} еще не начался.")
+    except ClientResponseError as e:
+        if e.status == 404:
+             await message.answer(
+                            "🏁 Информация о гонках пока недоступна.\n\n"
+                            "Сезон еще не начался или данные загружаются.",
+                            reply_markup=get_main_menu()
+                        )
+        else:
+            logger.error(f"HTTP ошибка при запросе результатов: {e.status}")
+            await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
         logger.error(f"Ошибка при выводе меню результатов: {e}")
         await message.answer(f"Ошибка при выводе меню результатов.")
