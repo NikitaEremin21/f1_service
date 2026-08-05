@@ -1,7 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
-from tg_bot.services.telegram_services import send_message
+from tg_bot.services.telegram_services import telegram_service
 from services.utils import SESSION_MAP, GP_FLAGS
 from channels.db import database_sync_to_async
 from django.db.models import Q
@@ -100,7 +100,7 @@ class NotificationService:
             f"{race.name}"
         )
         try:
-            send_message(user.telegram_id, message)
+            telegram_service.send_message(user.telegram_id, message)
             return True
         except Exception as e:
             logger.error(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
