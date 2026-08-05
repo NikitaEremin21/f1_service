@@ -43,4 +43,4 @@ class TelegramService:
             return False
 
 
-telegram_bot = TelegramService()
+telegram_service = TelegramService()
