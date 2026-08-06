@@ -106,7 +106,7 @@ async def get_session_results_api(request, round, session):
     """
     session_name = SESSION_MAP.get(session)
     if not session_name:
-        return HttpError(400, f"Недопустимый тип сессии: {session}")
+        raise HttpError(400, f"Недопустимый тип сессии: {session}")
     
     race = await get_race_by_round(round)
     if not race:

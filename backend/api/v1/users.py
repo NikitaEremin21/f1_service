@@ -105,7 +105,7 @@ async def get_notifications_api(request, telegram_id):
     """Получить текущие настройки уведомлений пользователя"""
     user = await get_user_by_telegram_id(telegram_id)
     if not user:
-        return HttpError(404, "Пользователь не найден")
+        raise HttpError(404, "Пользователь не найден")
 
     enabled_sessions, enabled_reminders = await get_enabled_sessions_and_reminders(user)
 
