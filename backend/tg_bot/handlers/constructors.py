@@ -1,6 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-import loguru
+from aiohttp import ClientResponseError
+from loguru import logger
 from tg_bot.keyboards.reply import (
     get_main_menu,
     MainMenuButtons
@@ -17,12 +18,21 @@ router = Router()
 async def constructors_list(message):
     try:
         constructors = await backend_client.get_all_constructors()
+        if not constructors:
+            await message.answer("Список команд временно недоступен.", reply_markup=get_main_menu())
+            return  
         text = format_constructors_message(constructors)
         await message.answer(
-            text, parse_mode="HTML",
+            text,
+            parse_mode="HTML",
             reply_markup=get_main_menu()
         )
-
+    except ClientResponseError as e:
+        if e.status == 404:
+            await message.answer("Список команд не найден.", reply_markup=get_main_menu())
+        else:
+            logger.error(f"HTTP ошибка при получении списка команд: {e.status}")
+            await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        loguru.logger.error(f'Ошибка при получении списка команд: {e}')
+        logger.error(f'Ошибка при получении списка команд: {e}')
         await message.answer('Ошибка при получении списка команд')

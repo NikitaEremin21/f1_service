@@ -36,6 +36,13 @@ async def next_race(message, state):
         
         user_tz = user.get("timezone")
         next_race_data = await backend_client.get_next_race(user_tz)
+        if not next_race_data:
+            await message.answer(
+                "🏁 Сезон ещё не начался или уже завершён.\n\n"
+                "Следите за обновлениями календаря.",
+                reply_markup=get_main_menu()
+            )
+            return
         next_race_message = get_next_race_message(next_race_data)
         await message.answer(
             next_race_message,
