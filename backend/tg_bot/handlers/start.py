@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart
 from tg_bot.states.registration import Registration
 from tg_bot.keyboards.reply import get_main_menu
 from tg_bot.services.api_client import backend_client
+import html
 
 
 router = Router()
@@ -17,6 +18,9 @@ async def start_function(message, state):
         username=message.from_user.username,
         first_name=message.from_user.first_name,
     )
+
+    name = html.escape(message.from_user.first_name)
+    
     await message.answer(
         "🏎️ <b>Добро пожаловать в F1 Assistant!</b>\n\n"
         "Я буду твоим персональным ассистентом в мире Формулы 1 🏁\n\n"
@@ -26,7 +30,7 @@ async def start_function(message, state):
         "📊 Давать результаты сессий\n"
         "🏆 Показывать чемпионаты пилотов и команд\n"
         "🔔 Напоминать о начале сессий (можно настроить в настройках)\n\n"
-        f"🌍 <b>{message.from_user.first_name}, скажи, в каком городе ты живёшь?</b>\n"
+        f"🌍 <b>{name}, скажи, в каком городе ты живёшь?</b>\n"
         "Это нужно, чтобы я показывал время в твоём часовом поясе ⏰",
         parse_mode="HTML"
     )
