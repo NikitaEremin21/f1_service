@@ -59,5 +59,5 @@ async def next_race(message, state):
             logger.error(f"HTTP ошибка при получении следующей гонки: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f'Ошибка при получении следующей гонки: {e}')
+        logger.exception(f'Ошибка при получении следующей гонки: {e}')
         await message.answer('Ошибка при получении следующей гонки')

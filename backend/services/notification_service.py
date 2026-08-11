@@ -103,7 +103,7 @@ class NotificationService:
             telegram_service.send_message(user.telegram_id, message)
             return True
         except Exception as e:
-            logger.error(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
+            logger.exception(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
             return False
     
 

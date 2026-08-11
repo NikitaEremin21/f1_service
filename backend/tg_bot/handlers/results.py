@@ -44,7 +44,7 @@ async def results_menu(message):
             logger.error(f"HTTP ошибка при запросе результатов: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f"Ошибка при выводе меню результатов: {e}")
+        logger.exception(f"Ошибка при выводе меню результатов: {e}")
         await message.answer(f"Ошибка при выводе меню результатов.")
 
 
@@ -71,5 +71,5 @@ async def session_results(callback):
         await callback.message.answer(text, parse_mode="HTML")
 
     except Exception as e:
-        logger.error(f"Ошибка при обработке сессии: {e}")
+        logger.exception(f"Ошибка при обработке сессии: {e}")
         await callback.message.answer("Не удалось загрузить результаты.")

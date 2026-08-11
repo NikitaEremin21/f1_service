@@ -40,7 +40,7 @@ async def show_notifications_menu(callback, state):
             await callback.message.edit_text("Сервис временно недоступен. Попробуйте позже.")
         await callback.answer()
     except Exception as e:
-        logger.error(f"Ошибка при загрузке настроек уведомлений: {e}")
+        logger.exception(f"Ошибка при загрузке настроек уведомлений: {e}")
         await callback.message.edit_text("Произошла ошибка. Попробуйте позже.")
         await callback.answer()
 
@@ -111,7 +111,7 @@ async def handle_notification_action(callback, state):
             await callback.message.edit_text("Сервис временно недоступен. Попробуйте позже.")
         await callback.answer()
     except Exception as e:
-        logger.error(f"Ошибка при обновлении уведомлений: {e}")
+        logger.exception(f"Ошибка при обновлении уведомлений: {e}")
         await callback.message.edit_text("Произошла ошибка. Попробуйте позже.")
         await callback.answer()
 

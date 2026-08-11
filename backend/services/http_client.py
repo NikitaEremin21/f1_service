@@ -1,4 +1,4 @@
-import aiohttp
+from aiohttp import ClientSession, ClientResponseError
 import asyncio
 from loguru import logger
 
@@ -19,7 +19,7 @@ class HttpClient:
         current_loop = asyncio.get_running_loop()
 
         if self.session is None:
-            self.session = aiohttp.ClientSession()
+            self.session = ClientSession()
             self.loop = current_loop
             logger.success("HTTP сессия создана")
             return self.session
@@ -30,10 +30,10 @@ class HttpClient:
                 if not self.session.closed:
                     await self.session.close()
             except Exception as e:
-                logger.error(f"Ошибка при закрытии старой сессии: {e}")
+                logger.exception(f"Ошибка при закрытии старой сессии: {e}")
 
 
-            self.session = aiohttp.ClientSession()
+            self.session = ClientSession()
             self.loop = current_loop
             logger.success("HTTP сессия обновлена")
         
@@ -65,12 +65,14 @@ class HttpClient:
                     response.raise_for_status()
                     return await response.json()
             
-            except Exception as e:
+            except ClientResponseError as e:
                 logger.warning(f"Ошибка при запросе: {e}. Попытка {attempt + 1}")
 
                 if attempt == retries - 1:
                     raise e
                 await asyncio.sleep(2 ** attempt)
+            except Exception as e:
+                logger.exception(f"Ошибка при запросе: {e}")
 
 
     async def post(self, url, data=None, json=None, params=None, retries=3):
@@ -86,11 +88,13 @@ class HttpClient:
                         raise Exception("Превышение лимита запросов: 429")
                     response.raise_for_status()
                     return await response.json()
-            except Exception as e:
+            except ClientResponseError as e:
                 logger.warning(f"Ошибка при POST запросе: {e}. Попытка {attempt + 1}")
                 if attempt == retries - 1:
                     raise e
                 await asyncio.sleep(2 ** attempt)
+            except Exception as e:
+                logger.exception(f"Ошибка при запросе: {e}")
 
 
     async def patch(self, url, data=None, json=None, params=None, retries=3):
@@ -105,11 +109,13 @@ class HttpClient:
                         raise Exception("Превышение лимита запросов: 429")
                     response.raise_for_status()
                     return await response.json()
-            except Exception as e:
+            except ClientResponseError as e:
                 logger.warning(f"Ошибка при PATCH запросе: {e}. Попытка {attempt + 1}")
                 if attempt == retries - 1:
                     raise e
                 await asyncio.sleep(2 ** attempt)
+            except Exception as e:
+                logger.exception(f"Ошибка при запросе: {e}")
 
 
 http_client = HttpClient()

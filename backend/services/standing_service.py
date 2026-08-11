@@ -32,7 +32,7 @@ async def get_drivers_standings():
         logger.error(f"Ошибка атрибута при загрузке чемпионата пилотов: {e}")
         return 0, []
     except Exception as e:
-        logger.error(f"Ошибка при загрузке чемпионата пилотов: {e}")
+        logger.exception(f"Ошибка при загрузке чемпионата пилотов: {e}")
         return 0, []
 
 
@@ -60,6 +60,6 @@ async def get_teams_standings():
         logger.error(f"Ошибка атрибута при загрузке кубка конструкторов: {e}")
         return 0, []
     except Exception as e:
-        logger.error(f"Ошибка при загрузке кубка конструкторов: {e}")
+        logger.exception(f"Ошибка при загрузке кубка конструкторов: {e}")
         return 0, []
 

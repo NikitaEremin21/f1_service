@@ -35,7 +35,7 @@ async def drivers_list(message):
             logger.error(f"HTTP ошибка при получении списка пилотов: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f'Ошибка при получении списка пилотов: {e}')
+        logger.exception(f'Ошибка при получении списка пилотов: {e}')
         await message.answer('Ошибка при получении списка пилотов')
 
 

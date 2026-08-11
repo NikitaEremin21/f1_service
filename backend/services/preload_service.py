@@ -80,7 +80,7 @@ class PreloadService():
                 await get_race_results(session_key)
             await PreloadService._mark_preloaded_session(race, session_type)
         except Exception as e:
-            logger.error(f"Ошибка предзагрузки {race.name} – {session_type}: {e}")
+            logger.exception(f"Ошибка предзагрузки {race.name} – {session_type}: {e}")
 
 
     @staticmethod
@@ -144,7 +144,7 @@ class PreloadService():
         race_for_standings, session_type = await get_last_completed_race()
 
         if not race_for_standings:
-            logger.error("Произошла ошибка")
+            logger.exception("Произошла ошибка")
             return
         
         await PreloadService._load_standings(race_for_standings, session_type)
@@ -182,7 +182,7 @@ class PreloadService():
                 await get_championship_teams(session_key)
                 await PreloadService._mark_preloaded_standings(race, "championship_teams")
         except Exception as e:
-            logger.error(f"При загрузке данных произошла ошибка: {e}")
+            logger.exception(f"При загрузке данных произошла ошибка: {e}")
 
 
     @staticmethod

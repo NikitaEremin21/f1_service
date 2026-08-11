@@ -68,5 +68,5 @@ async def process_new_city(message, state):
             logger.error(f"HTTP ошибка при смене города: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f"Ошибка при смене города: {e}")
+        logger.exception(f"Ошибка при смене города: {e}")
         await message.answer("Произошла ошибка при смене города. Попробуйте позже.")    

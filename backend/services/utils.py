@@ -124,7 +124,7 @@ async def get_timezone_by_city(city):
 
         return user_tz
     except Exception as e:
-        logger.error(f'Ошибка при получении часового пояса для города {city}: {e}')
+        logger.exception(f'Ошибка при получении часового пояса для города {city}: {e}')
         return None
     
 

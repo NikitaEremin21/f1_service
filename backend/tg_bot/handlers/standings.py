@@ -41,7 +41,7 @@ async def drivers_standings(message):
             logger.error(f"HTTP ошибка при выводе чемпионата пилотов: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f"Ошибка при выводе чемпионата пилотов: {e}")
+        logger.exception(f"Ошибка при выводе чемпионата пилотов: {e}")
         await message.answer(f"Ошибка при выводе чемпионата пилотов.")
 
 
@@ -70,5 +70,5 @@ async def teams_standings(message):
             logger.error(f"HTTP ошибка при выводе кубка конструкторов: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f"Ошибка при выводе кубка конструкторов: {e}")
+        logger.exception(f"Ошибка при выводе кубка конструкторов: {e}")
         await message.answer(f"Ошибка при выводе кубка конструкторов.")

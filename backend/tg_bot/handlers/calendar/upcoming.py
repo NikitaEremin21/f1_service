@@ -34,5 +34,5 @@ async def upcoming_function(message):
             logger.error(f"HTTP ошибка при получении предстоящих гонок: {e.status}")
             await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f'Ошибка при получении календаря: {e}')
+        logger.exception(f'Ошибка при получении календаря: {e}')
         await message.answer('Ошибка при получении календаря')

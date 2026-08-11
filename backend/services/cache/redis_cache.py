@@ -28,7 +28,7 @@ class RedisClient:
             try:
                 await self._client.aclose()
             except Exception as e:
-                logger.error(f"Ошибка при закрытии старого Redis клиента: {e}")
+                logger.exception(f"Ошибка при закрытии старого Redis клиента: {e}")
 
             self._client = redis.Redis(
                 host=settings.REDIS_HOST,
