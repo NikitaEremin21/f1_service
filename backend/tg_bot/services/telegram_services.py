@@ -40,7 +40,7 @@ class TelegramService:
         
         except Exception as e:
             logger.error(f"Ошибка отправки пользователю {telegram_id}: {e}")
-            return False
+            raise
 
 
 telegram_service = TelegramService()

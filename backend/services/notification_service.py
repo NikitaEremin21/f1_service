@@ -1,3 +1,4 @@
+from aiohttp import ClientResponseError
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
@@ -6,6 +7,7 @@ from services.utils import SESSION_MAP, GP_FLAGS
 from channels.db import database_sync_to_async
 from django.db.models import Q
 from django.db import models
+import asyncio
 
 
 class NotificationService:
@@ -14,7 +16,7 @@ class NotificationService:
     """
 
 
-    def check_and_send(self):
+    async def check_and_send(self):
         from core.models import GrandPrix, UserSessionSubscription, NotificationLog
         now = timezone.now()
         # Определяем максимальный интервал подписок (поле reminder_time)
@@ -59,7 +61,7 @@ class NotificationService:
                             session_type=session_type,
                             reminder_time=sub.reminder_time
                         ).exists():
-                            success = self._send_notification(sub.user, race, session_type, sub.reminder_time)
+                            success = await self._send_notification(sub.user, race, session_type, sub.reminder_time)
                             if success:
                                 NotificationLog.objects.create(
                                     user=sub.user,
@@ -94,17 +96,23 @@ class NotificationService:
         return fields
 
     
-    def _send_notification(self, user, race, session_type, reminder_time):
+    async def _send_notification(self, user, race, session_type, reminder_time, max_retries=3):
         message = (
             f"{GP_FLAGS.get(race.name, '🏁') } <b>{SESSION_MAP.get(session_type, session_type)} через {reminder_time} мин.</b>\n"
             f"{race.name}"
         )
-        try:
-            telegram_service.send_message(user.telegram_id, message)
-            return True
-        except Exception as e:
-            logger.exception(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
-            return False
+        for attempt in range(max_retries):
+            try:
+                telegram_service.send_message(user.telegram_id, message)
+                return True
+            except ClientResponseError as e:
+                logger.warning(f"Попытка {attempt + 1}/{max_retries} отправки пользователю {user.telegram_id} не удалась: {e}")
+                if attempt == max_retries - 1:
+                    raise e
+                await asyncio.sleep(2 ** attempt)
+            except Exception as e:
+                logger.exception(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
+                return False
     
 
 @database_sync_to_async
