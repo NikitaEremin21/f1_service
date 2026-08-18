@@ -1,4 +1,3 @@
-from aiohttp import ClientResponseError
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
@@ -7,25 +6,22 @@ from services.utils import SESSION_MAP, GP_FLAGS
 from channels.db import database_sync_to_async
 from django.db.models import Q
 from django.db import models
-import asyncio
 
 
 class NotificationService:
     """
     Сервис для управления уведомлениями пользователей о предстоящих событиях Гран-при.
     """
-
-
-    async def check_and_send(self):
+    def check_and_send(self):
         from core.models import GrandPrix, UserSessionSubscription, NotificationLog
         now = timezone.now()
-        # Определяем максимальный интервал подписок (поле reminder_time)
+        
         max_reminder = UserSessionSubscription.objects.aggregate(
             max_reminder=models.Max('reminder_time')
         )['max_reminder'] or 60
+
         lookahead = now + timedelta(minutes=max_reminder)
 
-        # Получаем все сессии, которые начнутся в течение lookahead
         races = GrandPrix.objects.filter(
             Q(race_datetime__gte=now) |
             Q(qualifying_datetime__gte=now) |
@@ -36,15 +32,16 @@ class NotificationService:
             Q(sprint_datetime__gte=now)
         ).distinct()
 
+        notifications = []
+
         for race in races:
-            session_fields = self._get_session_fields(race)
-            for field in session_fields:
+            for field in self._get_session_fields(race):
                 session_time = getattr(race, field)
                 if not session_time or session_time < now or session_time > lookahead:
                     continue
 
                 session_type = field.replace('_datetime', '')
-                # Находим всех пользователей, подписанных на эту сессию
+            
                 subscriptions = UserSessionSubscription.objects.filter(
                     session_type=session_type,
                     user__notifications_enabled=True
@@ -52,25 +49,73 @@ class NotificationService:
 
                 for sub in subscriptions:
                     reminder_time = session_time - timedelta(minutes=sub.reminder_time)
-                    # Отправляем, если reminder_time попал в текущую минуту (окно ±30 секунд для надёжности)
-                    if now >= reminder_time - timedelta(seconds=30) and now <= reminder_time + timedelta(seconds=30):
-                        # Проверяем, не отправляли ли уже это напоминание
-                        if not NotificationLog.objects.filter(
+                    
+                    if not reminder_time - timedelta(seconds=30) <= now <= reminder_time + timedelta(seconds=30):
+                        continue
+
+                    already_sent = NotificationLog.objects.filter(
                             user=sub.user,
                             race=race,
                             session_type=session_type,
                             reminder_time=sub.reminder_time
-                        ).exists():
-                            success = await self._send_notification(sub.user, race, session_type, sub.reminder_time)
-                            if success:
-                                NotificationLog.objects.create(
-                                    user=sub.user,
-                                    race=race,
-                                    session_type=session_type,
-                                    reminder_time=sub.reminder_time
-                                )
-                                logger.info(f"Уведомление отправлено пользователю {sub.user.telegram_id} о {session_type} за {sub.reminder_time} мин.")
-    
+                        ).exists()
+
+                    if already_sent:
+                        continue
+
+                    message = (
+                        f"{GP_FLAGS.get(race.name, '🏁')} "
+                        f"<b>"
+                        f"{SESSION_MAP.get(session_type, session_type)} "
+                        f"через {sub.reminder_time} мин."
+                        f"</b>\n"
+                        f"{race.name}"
+                    )
+
+                    notifications.append({
+                        "user": sub.user,
+                        "race": race,
+                        "session_type": session_type,
+                        "reminder_time": sub.reminder_time,
+                        "telegram_id": sub.user.telegram_id,
+                        "message": message,
+                    })
+
+        if not notifications:
+            return
+
+        telegram_messages = [
+            (
+                notification["telegram_id"],
+                notification["message"]
+            )
+            for notification in notifications
+        ]
+
+        results = telegram_service.send_messages(
+            telegram_messages
+        )
+
+        for notification, success in zip(
+            notifications,
+            results
+        ):
+            if not success:
+                continue
+
+            NotificationLog.objects.create(
+                user=notification["user"],
+                race=notification["race"],
+                session_type=notification["session_type"],
+                reminder_time=notification["reminder_time"]
+            )
+
+            logger.info(
+                f"Уведомление отправлено пользователю "
+                f"{notification['telegram_id']} "
+                f"о {notification['session_type']} "
+                f"за {notification['reminder_time']} мин."
+            )
 
     def _get_session_fields(self, race):
         """
@@ -94,25 +139,6 @@ class NotificationService:
             ]
         
         return fields
-
-    
-    async def _send_notification(self, user, race, session_type, reminder_time, max_retries=3):
-        message = (
-            f"{GP_FLAGS.get(race.name, '🏁') } <b>{SESSION_MAP.get(session_type, session_type)} через {reminder_time} мин.</b>\n"
-            f"{race.name}"
-        )
-        for attempt in range(max_retries):
-            try:
-                telegram_service.send_message(user.telegram_id, message)
-                return True
-            except ClientResponseError as e:
-                logger.warning(f"Попытка {attempt + 1}/{max_retries} отправки пользователю {user.telegram_id} не удалась: {e}")
-                if attempt == max_retries - 1:
-                    raise e
-                await asyncio.sleep(2 ** attempt)
-            except Exception as e:
-                logger.exception(f"Ошибка отправки пользователю {user.telegram_id}: {e}")
-                return False
     
 
 @database_sync_to_async
