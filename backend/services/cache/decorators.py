@@ -1,8 +1,7 @@
 import json
 import functools
 from django.conf import settings
-from services.cache.redis_cache import redis_client
-from loguru import logger
+from services.cache.redis_cache import async_get, async_set
 
 
 def async_cache(prefix: str, ttl: int = None):
@@ -27,14 +26,14 @@ def async_cache(prefix: str, ttl: int = None):
             key_raw = ":".join(key_parts)
             # cache_key = str(abs(hash(key_raw)))
 
-            cached = await redis_client.get(key_raw)
+            cached = await async_get(key_raw)
 
             if cached:
                 return json.loads(cached)
 
             result = await func(*args, **kwargs)
 
-            await redis_client.set(
+            await async_set(
                 key_raw,
                 json.dumps(result, default=str),
                 ttl or settings.REDIS_TTL

@@ -1,7 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
 from loguru import logger
-from services.cache.redis_cache import redis_client
+from services.cache.redis_cache import async_get, async_set, async_delete
 
 
 class PreloadService():
@@ -46,7 +46,10 @@ class PreloadService():
             session_time = getattr(race, field)
             if not session_time or session_time > now:
                 continue
-            await PreloadService._load_session(race, field)
+            try:
+                await PreloadService._load_session(race, field)
+            except Exception as e:
+                logger.exception(f"Ошибка предзагрузки {race.name} – {field}: {e}")
     
 
     @staticmethod
@@ -69,8 +72,8 @@ class PreloadService():
             session_name = SESSION_MAP.get(session_type)
             session_key = await get_session_key(meeting_key, session_name, race.year)
 
-            await redis_client.delete(f'openf1:session_result:{session_key}')
-            await redis_client.delete(f'openf1:driver:{session_key}')
+            await async_delete(f'openf1:session_result:{session_key}')
+            await async_delete(f'openf1:driver:{session_key}')
 
             if session_type in PRACTICE_SESSIONS:
                 await get_practice_results(session_key)
@@ -80,7 +83,7 @@ class PreloadService():
                 await get_race_results(session_key)
             await PreloadService._mark_preloaded_session(race, session_type)
         except Exception as e:
-            logger.exception(f"Ошибка предзагрузки {race.name} – {session_type}: {e}")
+            logger.error(f"Ошибка предзагрузки {race.name} – {session_type}: {e}")
 
 
     @staticmethod
@@ -91,14 +94,14 @@ class PreloadService():
     @staticmethod
     async def _is_preloaded_session(race, session_type):
         key = PreloadService._session_preload_key(race, session_type)
-        cached = await redis_client.get(key)
+        cached = await async_get(key)
         return cached is not None
 
 
     @staticmethod
     async def _mark_preloaded_session(race, session_type):
         key = PreloadService._session_preload_key(race, session_type)
-        await redis_client.set(key, "1", 12600)
+        await async_set(key, "1", 12600)
 
 
     @staticmethod
@@ -107,7 +110,6 @@ class PreloadService():
         Предзагрузка данных чемпионата пилотов и команд
         """
         from services.race_service import get_relevant_race
-        from services.openf1_service import get_meeting_key, get_session_key
         from services.race_service import get_last_completed_race
 
         now = timezone.now()
@@ -144,7 +146,7 @@ class PreloadService():
         race_for_standings, session_type = await get_last_completed_race()
 
         if not race_for_standings:
-            logger.exception("Произошла ошибка")
+            logger.error("Произошла ошибка")
             return
         
         await PreloadService._load_standings(race_for_standings, session_type)
@@ -173,16 +175,16 @@ class PreloadService():
             session_key = await get_session_key(meeting_key, session_type, race.year)
 
             if not drivers_loaded:
-                await redis_client.delete(f'openf1:championship_drivers:{session_key}')
+                await async_delete(f'openf1:championship_drivers:{session_key}')
                 await get_championship_drivers(session_key)
                 await PreloadService._mark_preloaded_standings(race, "championship_drivers")
 
             if not teams_loaded:
-                await redis_client.delete(f'openf1:championship_teams:{session_key}')
+                await async_delete(f'openf1:championship_teams:{session_key}')
                 await get_championship_teams(session_key)
                 await PreloadService._mark_preloaded_standings(race, "championship_teams")
         except Exception as e:
-            logger.exception(f"При загрузке данных произошла ошибка: {e}")
+            logger.error(f"При загрузке данных произошла ошибка: {e}")
 
 
     @staticmethod
@@ -193,11 +195,11 @@ class PreloadService():
     @staticmethod
     async def _is_preloaded_standings(race, standings_type):
         key = PreloadService._standings_preload_key(race, standings_type)
-        cached = await redis_client.get(key)
+        cached = await async_get(key)
         return cached is not None
 
 
     @staticmethod
     async def _mark_preloaded_standings(race, standings_type):
         key = PreloadService._standings_preload_key(race, standings_type)
-        await redis_client.set(key, "1", 12600)
+        await async_set(key, "1", 12600)
