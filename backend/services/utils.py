@@ -38,33 +38,41 @@ GP_FLAGS = {
 
 
 DRIVER_FLAGS = {
-    "NOR": "🇬🇧",
-    "PIA": "🇦🇺",
-    "VER": "🇳🇱",
-    "HAD": "🇫🇷",
-    "RUS": "🇬🇧",
-    "ANT": "🇮🇹", 
-    "HAM": "🇬🇧",
-    "LEC": "🇲🇨",
-    "SAI": "🇪🇸",
-    "ALB": "🇹🇭",
-    "LAW": "🇳🇿",
-    "LIN": "🇬🇧",
-    "ALO": "🇪🇸",
-    "STR": "🇨🇦",
-    "OCO": "🇫🇷",
-    "BEA": "🇬🇧",
-    "HUL": "🇩🇪",
-    "BOR": "🇧🇷",
-    "GAS": "🇫🇷",
-    "COL": "🇦🇷",
-    "PER": "🇲🇽",
-    "BOT": "🇫🇮",
-    "VES": "🇩🇰",
-    "FOR": "🇮🇹",
-    "HIR": "🇯🇵",
-    "ARO": "🇪🇪",
-    "HER": "🇺🇸",    
+    "NOR": "🇬🇧",  # Lando Norris
+    "PIA": "🇦🇺",  # Oscar Piastri
+    "VER": "🇳🇱",  # Max Verstappen
+    "HAD": "🇫🇷",  # Isack Hadjar
+    "RUS": "🇬🇧",  # George Russell
+    "ANT": "🇮🇹",  # Kimi Antonelli
+    "HAM": "🇬🇧",  # Lewis Hamilton
+    "LEC": "🇲🇨",  # Charles Leclerc
+    "SAI": "🇪🇸",  # Carlos Sainz
+    "ALB": "🇹🇭",  # Alexander Albon
+    "LAW": "🇳🇿",  # Liam Lawson
+    "LIN": "🇬🇧",  # Arvid Lindblad
+    "ALO": "🇪🇸",  # Fernando Alonso
+    "STR": "🇨🇦",  # Lance Stroll
+    "OCO": "🇫🇷",  # Esteban Ocon
+    "BEA": "🇬🇧",  # Oliver Bearman
+    "HUL": "🇩🇪",  # Nico Hülkenberg
+    "BOR": "🇧🇷",  # Gabriel Bortoleto
+    "GAS": "🇫🇷",  # Pierre Gasly
+    "COL": "🇦🇷",  # Franco Colapinto
+    "PER": "🇲🇽",  # Sergio Pérez
+    "BOT": "🇫🇮",  # Valtteri Bottas
+
+    # --- Reserve / Test drivers ---
+    "VES": "🇩🇰",  # Fred Vesti (Mercedes reserve)
+    "GIO": "🇮🇹",  # Antonio Giovinazzi (Ferrari reserve)
+    "FOR": "🇮🇹",  # Leonardo Fornaroli (McLaren reserve)
+    "OWA": "🇲🇽",  # Pato O'Ward (McLaren reserve)
+    "TSU": "🇯🇵",  # Yuki Tsunoda (Red Bull / Racing Bulls reserve)
+    "ARO": "🇪🇪",  # Paul Aron (Alpine reserve)
+    "MAI": "🇮🇳",  # Kush Maini (Alpine reserve)
+    "DOO": "🇦🇺",  # Jack Doohan (Haas reserve)
+    "HIR": "🇯🇵",  # Ryo Hirakawa (Haas reserve)
+    "CRA": "🇺🇸",  # Jak Crawford (Aston Martin reserve)
+    "ZHO": "🇨🇳",  # Zhou Guanyu (Cadillac reserve)  
 }
 
 
