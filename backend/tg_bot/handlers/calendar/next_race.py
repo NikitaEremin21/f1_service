@@ -1,5 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
+from aiohttp import ClientResponseError
 from loguru import logger
 from tg_bot.keyboards.reply import (
     get_main_menu,
@@ -35,11 +36,28 @@ async def next_race(message, state):
         
         user_tz = user.get("timezone")
         next_race_data = await backend_client.get_next_race(user_tz)
+        if not next_race_data:
+            await message.answer(
+                "🏁 Сезон ещё не начался или уже завершён.\n\n"
+                "Следите за обновлениями календаря.",
+                reply_markup=get_main_menu()
+            )
+            return
         next_race_message = get_next_race_message(next_race_data)
         await message.answer(
             next_race_message,
             reply_markup=get_main_menu()
         )
+    except ClientResponseError as e:
+        if e.status == 404:
+            await message.answer(
+                "🏁 Сезон ещё не начался или уже завершён.\n\n"
+                "Следите за обновлениями календаря.",
+                reply_markup=get_main_menu()
+            )
+        else:
+            logger.error(f"HTTP ошибка при получении следующей гонки: {e.status}")
+            await message.answer("Сервис временно недоступен. Попробуйте позже.")
     except Exception as e:
-        logger.error(f'Ошибка при получении следующей гонки: {e}')
+        logger.exception(f'Ошибка при получении следующей гонки: {e}')
         await message.answer('Ошибка при получении следующей гонки')

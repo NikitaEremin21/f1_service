@@ -16,9 +16,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/calendar/all"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
+        return data if isinstance(data, list) else []
     
 
     async def get_upcoming_calendar(self):
@@ -27,9 +25,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/calendar/upcoming"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
+        return data if isinstance(data, list) else []
     
 
     async def get_next_race(self, user_tz):
@@ -38,8 +34,6 @@ class BackendClient:
         """
         url = f"{self.base_url}/calendar/next_race"
         data =await http_client.get(url, params={"user_tz": user_tz})
-        if not data:
-            return None
         return data
     
 
@@ -49,9 +43,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/drivers/all"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
+        return data if isinstance(data, list) else []
     
 
     async def get_all_constructors(self):
@@ -60,9 +52,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/constructors/all"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
+        return data if isinstance(data, list) else []
     
 
     async def get_standings_drivers(self):
@@ -71,9 +61,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/standings/drivers"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
+        return data if isinstance(data, dict) else {"year": 0, "standings": []}
     
 
     async def get_standings_teams(self):
@@ -82,10 +70,8 @@ class BackendClient:
         """
         url = f"{self.base_url}/standings/constructors"
         data = await http_client.get(url)
-        if not data:
-            return None
-        return data
-    
+        return data if isinstance(data, dict) else {"year": 0, "standings": []}
+
 
     async def get_relevant_race(self):
         """
@@ -93,8 +79,6 @@ class BackendClient:
         """
         url = f"{self.base_url}/results/relevant_race"
         data = await http_client.get(url)
-        if not data:
-            return None
         return data
     
 
@@ -104,7 +88,7 @@ class BackendClient:
         """
         url = f"{self.base_url}/results/{round}/{session}"
         data = await http_client.get(url)
-        if not data:
+        if data is None:
             return None
         return data
     

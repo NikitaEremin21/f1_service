@@ -1,5 +1,6 @@
 from ninja import Router
 from typing import List, Optional
+from ninja.errors import HttpError
 from pydantic import BaseModel
 from services.race_service import get_relevant_race
 from datetime import datetime
@@ -82,7 +83,7 @@ async def get_relevant_race_api(request):
     race = await get_relevant_race()
     
     if not race:
-        return None
+        raise HttpError(404, "Гран-при не найден")
     
     return RaceSchema(
         round=race.round,
@@ -103,18 +104,41 @@ async def get_session_results_api(request, round, session):
     """
     Получить результаты сессии
     """
-    race = await get_race_by_round(round)
     session_name = SESSION_MAP.get(session)
+    if not session_name:
+        raise HttpError(400, f"Недопустимый тип сессии: {session}")
+    
+    race = await get_race_by_round(round)
+    if not race:
+        raise HttpError(404, f"Гран-при с номером {round} не найден")
+    
     meeting_key = await get_meeting_key(race.name, race.year)
-    session_key = await get_session_key(meeting_key, session_name, race.year)
+    if not meeting_key:
+        return ResultsResponseSchema(
+        round=race.round,
+        race_name=race.name,
+        session=session,
+        results=[]
+    )
 
+    session_key = await get_session_key(meeting_key, session_name, race.year)
+    if not session_key:
+        return ResultsResponseSchema(
+            round=race.round,
+            race_name=race.name,
+            session=session,
+            results=[]
+        )
+    
     if session in PRACTICE_SESSIONS:
         results_data = await get_practice_results(session_key)
     elif session == "qualifying" or session == "sprint_qualifying":
         results_data = await get_qualifying_results(session_key)
     else:
         results_data = await get_race_results(session_key)
-    
+
+    if results_data is None:
+        results_data = []
     
     return ResultsResponseSchema(
         round=race.round,

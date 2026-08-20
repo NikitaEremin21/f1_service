@@ -1,6 +1,7 @@
 from ninja import Router
 from typing import List, Optional
 from datetime import date, datetime
+from ninja.errors import HttpError
 from pydantic import BaseModel
 from services.calendar_service import (
     get_all_races,
@@ -95,5 +96,6 @@ async def get_next_race_api(request, user_tz):
     Получить информацию о следующей гонке
     """
     next_race = await get_next_race_data(user_tz)
-    
+    if not next_race:
+        raise HttpError(404, "Следующая гонка не найдена (сезон завершён или ещё не начался)")
     return next_race

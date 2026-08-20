@@ -1,8 +1,5 @@
-from shlex import quote
-
 from services.http_client import http_client
 from services.cache.decorators import async_cache
-import json
 from loguru import logger
 
 
@@ -15,7 +12,8 @@ async def get_meeting_key(meeting_name, year):
     meeting_name = meeting_name.replace("'", "")
     try:
         data = await http_client.get(
-            url, params={
+            url,
+            params={
                 "year": year,
                 "meeting_name": meeting_name,
             }
@@ -24,13 +22,13 @@ async def get_meeting_key(meeting_name, year):
         if not data:
             return None
         
-        meeting_key = data[0].get('meeting_key')
-        return meeting_key
+        return data[0].get('meeting_key')
+
     except Exception as e:
-        logger.warning(
+        logger.exception(
             f"Ошибка при получении meeting_key для {meeting_name}"
         )
-        raise e
+        raise
     
 
 @async_cache(prefix="openf1:session_key", ttl=604800)
@@ -41,7 +39,8 @@ async def get_session_key(meeting_key, session_name, year):
     url = f"https://api.openf1.org/v1/sessions"
     try:
         data = await http_client.get(
-            url, params={
+            url,
+            params={
                 "meeting_key": meeting_key,
                 "session_name": session_name,
                 "year": year,
@@ -50,13 +49,13 @@ async def get_session_key(meeting_key, session_name, year):
         if not data:
             return None
         
-        session_key = data[0].get('session_key')
-        return session_key
+        return data[0].get('session_key')
+
     except Exception as e:
-        logger.warning(
+        logger.exception(
             f"Ошибка при получении session_key"
         )
-        raise e
+        raise
     
 
 @async_cache(prefix="openf1:session_result", ttl=12600)
@@ -67,7 +66,8 @@ async def get_results(session_key):
     url = f"https://api.openf1.org/v1/session_result"
     try:
         data = await http_client.get(
-            url, params={
+            url, 
+            params={
                 "session_key": session_key,
                 "position<=22": "",
             }
@@ -78,10 +78,10 @@ async def get_results(session_key):
         
         return data
     except Exception as e:
-        logger.warning(
+        logger.exception(
             f"Ошибка при получении session_key"
         )
-        raise e
+        raise
     
 
 @async_cache(prefix="openf1:driver", ttl=12600)
@@ -96,16 +96,16 @@ async def get_driver(session_key):
                 "session_key": session_key,
             }
         )
+
         if not data:
             return None
-        
 
         return data
     except Exception as e:
-        logger.warning(
-            f"Ошибка при получении session_key"
+        logger.exception(
+            f"Ошибка при получении информации о пилотах"
         )
-        raise e
+        raise
 
     
 
@@ -127,10 +127,10 @@ async def get_championship_drivers(session_key):
         
         return data
     except Exception as e:
-        logger.warning(
+        logger.exception(
             f"Ошибка при загрузке турнирной таблицы пилотов из OpenF1"
         )
-        raise e
+        raise
     
     
 @async_cache(prefix="openf1:championship_teams", ttl=12600)
@@ -151,7 +151,7 @@ async def get_championship_teams(session_key):
         
         return data
     except Exception as e:
-        logger.warning(
+        logger.exception(
             f"Ошибка при загрузке кубка конструкторов из OpenF1"
         )
-        raise e
+        raise
