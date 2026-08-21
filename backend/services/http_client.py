@@ -53,7 +53,7 @@ class HttpClient:
 
     async def get(self, url, params=None, retries=3):
         """
-        GET запрос
+        GET запрос с retry/backoff и обработкой 429
         """
         session = await self.get_session()
 
@@ -61,18 +61,31 @@ class HttpClient:
             try:
                 async with session.get(url, params=params, timeout=10) as response:
                     if response.status == 429:
-                        raise Exception("Превышение лимита запросов: 429")
+                        # если сервер вернул Retry-After, пауза по нему, иначе экспоненциальный backoff
+                        retry_after = response.headers.get('Retry-After')
+                        try:
+                            wait = int(retry_after) if retry_after and retry_after.isdigit() else (2 ** attempt)
+                        except Exception:
+                            wait = 2 ** attempt
+                        logger.warning(f"Получен 429 (rate limit). Ожидание {wait}s перед повтором (попытка {attempt + 1})")
+                        if attempt == retries - 1:
+                            response.raise_for_status()
+                        await asyncio.sleep(wait)
+                        continue
+
                     response.raise_for_status()
                     return await response.json()
-            
             except ClientResponseError as e:
                 logger.warning(f"Ошибка при запросе: {e}. Попытка {attempt + 1}")
-
                 if attempt == retries - 1:
-                    raise e
+                    raise
                 await asyncio.sleep(2 ** attempt)
             except Exception as e:
-                logger.exception(f"Ошибка при запросе: {e}")
+                # Ловим сетевые/таймаут/прочие ошибки и повторяем
+                logger.exception(f"Ошибка при запросе: {e}. Попытка {attempt + 1}")
+                if attempt == retries - 1:
+                    raise
+                await asyncio.sleep(2 ** attempt)
 
 
     async def post(self, url, data=None, json=None, params=None, retries=3):

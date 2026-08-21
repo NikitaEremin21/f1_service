@@ -20,8 +20,25 @@ def _normalize_driver_number(value):
 def _get_driver_display_data(driver_number, drivers_by_number, drivers_info_dict):
     """
     Возвращает данные пилота для отображения.
-    Сначала ищет в локальной БД, затем в OpenF1, затем fallback.
+    Предпочтение отдаваться данным OpenF1 (drivers_info_dict), потому что резервные пилоты
+    могут отсутствовать в локальной БД. Если OpenF1 не дал данных — падаем к локальной БД,
+    а затем к fallback.
     """
+    driver_info = drivers_info_dict.get(driver_number)
+    if driver_info:
+        driver_code = driver_info.get("name_acronym", f"#{driver_number}")
+        team_name_raw = driver_info.get("team_name", "-")
+        team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
+        first_name = driver_info.get("first_name", "")
+        last_name = driver_info.get("last_name", "")
+        return {
+            "driver_code": driver_code,
+            "team_name": team_name,
+            "flag": DRIVER_FLAGS.get(driver_code, ""),
+            "first_name": first_name,
+            "last_name": last_name,
+        }
+
     driver = drivers_by_number.get(driver_number)
     if driver:
         driver_code = driver.code
@@ -34,21 +51,6 @@ def _get_driver_display_data(driver_number, drivers_by_number, drivers_info_dict
             "driver_code": driver_code,
             "team_name": team_name,
             "flag": flag,
-            "first_name": first_name,
-            "last_name": last_name,
-        }
-
-    driver_info = drivers_info_dict.get(driver_number)
-    if driver_info:
-        driver_code = driver_info.get("name_acronym", f"#{driver_number}")
-        team_name_raw = driver_info.get("team_name", "-")
-        team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
-        first_name = driver_info.get("first_name", "")
-        last_name = driver_info.get("last_name", "")
-        return {
-            "driver_code": driver_code,
-            "team_name": team_name,
-            "flag": DRIVER_FLAGS.get(driver_code, ""),
             "first_name": first_name,
             "last_name": last_name,
         }
