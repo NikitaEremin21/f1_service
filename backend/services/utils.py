@@ -72,7 +72,8 @@ DRIVER_FLAGS = {
     "DOO": "🇦🇺",  # Jack Doohan (Haas reserve)
     "HIR": "🇯🇵",  # Ryo Hirakawa (Haas reserve)
     "CRA": "🇺🇸",  # Jak Crawford (Aston Martin reserve)
-    "ZHO": "🇨🇳",  # Zhou Guanyu (Cadillac reserve)  
+    "ZHO": "🇨🇳",  # Zhou Guanyu (Cadillac reserve)
+    "HER": "🇺🇸",  # Colton Herta (Cadillac reserve)
 }
 
 

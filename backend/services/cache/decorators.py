@@ -24,20 +24,21 @@ def async_cache(prefix: str, ttl: int = None):
                     key_parts.append(str(arg))
 
             key_raw = ":".join(key_parts)
-            # cache_key = str(abs(hash(key_raw)))
 
             cached = await async_get(key_raw)
 
-            if cached:
+            if cached is not None:
                 return json.loads(cached)
 
             result = await func(*args, **kwargs)
 
-            await async_set(
-                key_raw,
-                json.dumps(result, default=str),
-                ttl or settings.REDIS_TTL
-            )
+            # НЕ кэшируем пустые/ошибочные ответы
+            if result is not None and result != [] and result != {}:
+                await async_set(
+                    key_raw,
+                    json.dumps(result, default=str),
+                    ttl or settings.REDIS_TTL
+                )
 
             return result
 
