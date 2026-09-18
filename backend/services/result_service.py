@@ -20,33 +20,27 @@ def _normalize_driver_number(value):
 def _get_driver_display_data(driver_number, drivers_by_number, drivers_info_dict):
     """
     Возвращает данные пилота для отображения.
-    Предпочтение отдаваться данным OpenF1 (drivers_info_dict), потому что резервные пилоты
-    могут отсутствовать в локальной БД. Если OpenF1 не дал данных — падаем к локальной БД,
-    а затем к fallback.
+    Принцип: OpenF1 даёт live-данные (номера, позиции, времена), а БД даёт справочные данные
+    (имя, флаг, команда, статус). Если какие-то данные отсутствуют — подставляем безопасный fallback.
     """
-    driver_info = drivers_info_dict.get(driver_number)
+    driver = drivers_by_number.get(_normalize_driver_number(driver_number))
+    driver_info = drivers_info_dict.get(_normalize_driver_number(driver_number))
+
     if driver_info:
         driver_code = driver_info.get("name_acronym", f"#{driver_number}")
         team_name_raw = driver_info.get("team_name", "-")
         team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
         first_name = driver_info.get("first_name", "")
         last_name = driver_info.get("last_name", "")
-        return {
-            "driver_code": driver_code,
-            "team_name": team_name,
-            "flag": DRIVER_FLAGS.get(driver_code, ""),
-            "first_name": first_name,
-            "last_name": last_name,
-        }
+        flag = driver.flag if driver and getattr(driver, 'flag', None) else DRIVER_FLAGS.get(driver_code, "")
 
-    driver = drivers_by_number.get(driver_number)
-    if driver:
-        driver_code = driver.code
-        team_name_raw = driver.team.name if driver.team else "-"
-        team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
-        flag = DRIVER_FLAGS.get(driver_code, "")
-        first_name = driver.first_name
-        last_name = driver.last_name
+        if not first_name and driver:
+            first_name = driver.first_name
+        if not last_name and driver:
+            last_name = driver.last_name
+        if not team_name or team_name == "-":
+            team_name = driver.team.name if driver and driver.team else "-"
+
         return {
             "driver_code": driver_code,
             "team_name": team_name,
@@ -55,11 +49,24 @@ def _get_driver_display_data(driver_number, drivers_by_number, drivers_info_dict
             "last_name": last_name,
         }
 
+    if driver:
+        driver_code = driver.code
+        team_name_raw = driver.team.name if driver.team else "-"
+        team_name = TEAMS_DISPLAY_NAMES.get(team_name_raw, team_name_raw)
+        flag = driver.flag or DRIVER_FLAGS.get(str(driver_code).upper(), "")
+        return {
+            "driver_code": driver_code,
+            "team_name": team_name,
+            "flag": flag,
+            "first_name": driver.first_name,
+            "last_name": driver.last_name,
+        }
+
     driver_code = f"#{driver_number}"
     return {
         "driver_code": driver_code,
         "team_name": "-",
-        "flag": DRIVER_FLAGS.get(driver_code, ""),
+        "flag": DRIVER_FLAGS.get(str(driver_code).upper(), ""),
         "first_name": "",
         "last_name": "",
     }
@@ -117,6 +124,8 @@ async def get_practice_results(session_key):
     for result in session_data:
         driver_number = _normalize_driver_number(result.get("driver_number"))
         position = result.get("position")
+        if position is None:
+            position = 999
         duration = result.get("duration")
         gap = result.get("gap_to_leader")
         laps = result.get("number_of_laps", 0)
@@ -145,7 +154,7 @@ async def get_practice_results(session_key):
             "laps": laps,
         })
 
-    driver_results.sort(key=lambda x: x["position"])
+    driver_results.sort(key=lambda x: (x.get("position") is None, x.get("position") if x.get("position") is not None else 9999))
     return driver_results
 
 
@@ -237,7 +246,7 @@ async def get_qualifying_results(session_key):
                 "gap": "-",
             })
 
-    driver_results.sort(key=lambda x: x["position"])
+    driver_results.sort(key=lambda x: (x.get("position") is None, x.get("position") if x.get("position") is not None else 9999))
     return driver_results
 
 
@@ -266,12 +275,14 @@ async def get_race_results(session_key):
     entrant_numbers = set(drivers_info_dict) | set(results_by_number)
 
     driver_results = []
-    for driver_number in sorted(entrant_numbers, key=lambda value: (value is None, value)):
+    for driver_number in sorted(entrant_numbers, key=lambda value: (value is None, value if value is not None else -1)):
         driver_result = results_by_number.get(driver_number)
         driver_data = _get_driver_display_data(driver_number, drivers_by_number, drivers_info_dict)
 
         if driver_result:
             position = driver_result.get("position")
+            if position is None:
+                position = 999
             points = driver_result.get("points")
             gap = driver_result.get("gap_to_leader")
 
@@ -316,5 +327,5 @@ async def get_race_results(session_key):
                 "laps": 0,
             })
 
-    driver_results.sort(key=lambda x: x["position"])
+    driver_results.sort(key=lambda x: (x.get("position") is None, x.get("position") if x.get("position") is not None else 9999))
     return driver_results

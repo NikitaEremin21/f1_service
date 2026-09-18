@@ -66,10 +66,9 @@ async def get_results(session_key):
     url = f"https://api.openf1.org/v1/session_result"
     try:
         data = await http_client.get(
-            url, 
+            url,
             params={
                 "session_key": session_key,
-                "position<=22": "",
             }
         )
 

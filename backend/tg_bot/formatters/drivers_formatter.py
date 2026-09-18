@@ -10,6 +10,7 @@ def format_drivers_message(drivers):
         first_name = driver.get("first_name", "")
         last_name = driver.get("last_name", "")
         team = driver.get("team", "Нет команды")
-        text += f"{number:>2} {flag} {first_name} {last_name} - {team}\n"
+        num_str = str(number) if number is not None else ""
+        text += f"{num_str:>2} {flag} {first_name} {last_name} - {team}\n"
     text += "</pre>"
     return text

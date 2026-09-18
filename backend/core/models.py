@@ -24,11 +24,13 @@ class Constructor(models.Model):
 
 class Driver(models.Model):
     ref = models.CharField(max_length=50, unique=True)
-    number = models.PositiveIntegerField()
-    code = models.CharField(max_length=3)
+    number = models.PositiveIntegerField(null=True, blank=True)
+    code = models.CharField(max_length=10)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     nationality = models.CharField(max_length=50)
+    flag = models.CharField(max_length=10, default='', blank=True)
+    is_primary = models.BooleanField(default=False, db_index=True)
     birth_date = models.DateField(null=True, blank=True)
     team = models.ForeignKey('Constructor', on_delete=models.SET_NULL,
                              null=True, blank=True, related_name='drivers')

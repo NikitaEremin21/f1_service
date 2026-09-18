@@ -1,6 +1,7 @@
 from ninja import Router
 from typing import List
 from pydantic import BaseModel
+from loguru import logger
 from services.standing_service import (
     get_drivers_standings,
     get_teams_standings,
@@ -54,21 +55,46 @@ async def get_drivers_standings_api(request):
         return DriverStandingSchema(year=year, standings=[])
     
     drivers_list = await get_drivers_list()
-    drivers_dict = {driver.number: driver for driver in drivers_list}
+    drivers_dict = {
+        int(driver.number): driver for driver in drivers_list if driver.number is not None
+    }
+    drivers_by_code = {}
+    for driver in drivers_list:
+        if not driver.code:
+            continue
+        code = str(driver.code).upper()
+        if code in drivers_by_code:
+            logger.warning(f"Duplicate driver code in DB: {code} => {drivers_by_code[code].first_name} {drivers_by_code[code].last_name} and {driver.first_name} {driver.last_name}")
+            current = drivers_by_code[code]
+            pick = current if (current.is_primary and not driver.is_primary) else driver
+            drivers_by_code[code] = pick
+            continue
+        drivers_by_code[code] = driver
 
     standings_list = []
     for standing in standings_drivers:
-        driver = drivers_dict.get(standing.get("driver_number"))
+        driver_number_raw = standing.get("driver_number")
+        driver_number = int(driver_number_raw) if driver_number_raw is not None else None
+        driver_code = str(standing.get("driver_code", "")).upper() if standing.get("driver_code") else ""
+
+        driver = drivers_dict.get(driver_number) if driver_number is not None else None
+        if driver is None and driver_code:
+            driver = drivers_by_code.get(driver_code)
+
+        driver_flag = ""
+        if driver:
+            driver_flag = driver.flag or DRIVER_FLAGS.get(str(driver.code).upper(), "")
+
         standings_list.append(
             DriversSchema(
-                        position=standing.get("position_current", 0),
-                        flag=DRIVER_FLAGS.get(driver.code, "") if driver else "",
-                        driver_number=standing.get("driver_number", 0),
-                        first_name=driver.first_name if driver else "",
-                        last_name=driver.last_name if driver else "",
-                        team_name=driver.team.name if driver and driver.team else "-",
-                        points=standing.get("points_current", 0),
-                    )
+                position=standing.get("position_current", 0),
+                flag=driver_flag,
+                driver_number=driver_number if driver_number is not None else 0,
+                first_name=driver.first_name if driver else "",
+                last_name=driver.last_name if driver else "",
+                team_name=driver.team.name if driver and driver.team else "-",
+                points=standing.get("points_current", 0),
+            )
         )
 
     standings_list.sort(key=lambda x: x.position)
