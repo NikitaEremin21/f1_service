@@ -13,11 +13,13 @@ class ConstructorAdmin(admin.ModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'team', 'number',
-                    'code', 'nationality', 'ref', 'age', 'birth_date',)
-    search_fields = ('first_name', 'last_name', 'team', 'ref')
-    list_filter = ('team', 'nationality', 'birth_date',)
-    fields = ('first_name', 'last_name', 'team', 'number', 
-              'code', 'nationality', 'ref', 'birth_date',)
+                   'code', 'nationality', 'flag', 'is_primary', 'ref', 'age', 'birth_date',)
+    list_display_links = ('first_name', 'last_name')
+    search_fields = ('first_name', 'last_name', 'team', 'ref', 'code')
+    list_filter = ('team', 'nationality', 'is_primary', 'birth_date',)
+    fields = ('first_name', 'last_name', 'team', 'number',
+              'code', 'nationality', 'flag',
+              'is_primary', 'ref', 'birth_date',)
     list_select_related = ('team',)
     autocomplete_fields = ('team',)
 
