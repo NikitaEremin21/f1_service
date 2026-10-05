@@ -152,6 +152,8 @@ activemq-data/
 .env.dev
 .env.prod
 .envrc
+.htpasswd
+*.htpasswd
 .venv
 env/
 venv/
