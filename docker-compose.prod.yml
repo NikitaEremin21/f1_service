@@ -37,6 +37,11 @@ services:
              uvicorn backend.asgi:application --host 0.0.0.0 --port 8000 --workers 1"
     env_file:
       - .env.prod
+    # Порт публикуется только на loopback сервера: доступен через SSH-туннель,
+    # снаружи закрыт. Без префикса 127.0.0.1 порт был бы виден из интернета
+    # напрямую, минуя nginx.
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - static_volume:/app/backend/staticfiles
     depends_on:
