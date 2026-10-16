@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily PostgreSQL backup for F1 Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/f1_service
+ExecStart=/bin/bash /root/f1_service/scripts/backup_database.sh
