@@ -12,11 +12,11 @@ from tg_bot.keyboards.inline.settings import (
 )
 from tg_bot.keyboards.reply.main_menu import (
     MainMenuButtons,
+    get_city_change_menu,
     get_feedback_menu,
     get_main_menu,
 )
 from tg_bot.states.settings import Feedback, SettingsCity
-from aiogram.types import ReplyKeyboardRemove
 from tg_bot.services.api_client import backend_client
 from django.conf import settings
 
@@ -170,9 +170,21 @@ async def change_city_callback(callback, state):
         "🌍 **Смена города**\n\n"
         "Пожалуйста, введите название города:",
         parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=get_city_change_menu(),
     )
     await callback.answer()
+
+
+@router.message(
+    SettingsCity.waiting_for_new_city,
+    F.text == MainMenuButtons.CANCEL_CITY_CHANGE
+)
+async def cancel_city_change(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Смена города отменена.",
+        reply_markup=get_main_menu()
+    )
 
 
 @router.message(SettingsCity.waiting_for_new_city)

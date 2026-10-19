@@ -14,6 +14,7 @@ class MainMenuButtons:
     DRIVERS_STANDINGS = "Чемпионат пилотов"
     SETTINGS = "Настройки"
     CANCEL_FEEDBACK = "Отменить отзыв"
+    CANCEL_CITY_CHANGE = "Отменить"
 
     
 def get_main_menu():
@@ -38,3 +39,8 @@ def get_feedback_menu():
     builder.add(KeyboardButton(text=MainMenuButtons.CANCEL_FEEDBACK))
     return builder.as_markup(resize_keyboard=True)
 
+
+def get_city_change_menu():
+    builder = ReplyKeyboardBuilder()
+    builder.add(KeyboardButton(text=MainMenuButtons.CANCEL_CITY_CHANGE))
+    return builder.as_markup(resize_keyboard=True)
