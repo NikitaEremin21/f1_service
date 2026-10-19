@@ -27,6 +27,7 @@ load_dotenv(env_file)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+FEEDBACK_CHANNEL_ID = os.getenv("FEEDBACK_CHANNEL_ID")
 
 
 # Quick-start development settings - unsuitable for production

@@ -1,13 +1,24 @@
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramAPIError
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 from aiohttp import ClientResponseError
 from loguru import logger
 from tg_bot.keyboards.inline import get_settings_keyboard
-from tg_bot.keyboards.inline.settings import get_about_project_keyboard, get_back_to_about_project_keyboard
-from tg_bot.keyboards.reply.main_menu import MainMenuButtons, get_main_menu
-from tg_bot.states.settings import SettingsCity
+from tg_bot.keyboards.inline.settings import (
+    get_about_project_keyboard,
+    get_back_to_about_project_keyboard,
+)
+from tg_bot.keyboards.reply.main_menu import (
+    MainMenuButtons,
+    get_feedback_menu,
+    get_main_menu,
+)
+from tg_bot.states.settings import Feedback, SettingsCity
 from aiogram.types import ReplyKeyboardRemove
 from tg_bot.services.api_client import backend_client
+from django.conf import settings
 
 
 router = Router()
@@ -25,7 +36,8 @@ async def show_settings(message):
 
 
 @router.callback_query(F.data == "about_project")
-async def show_about_project(callback):
+async def show_about_project(callback, state: FSMContext):
+    await state.clear()
     await callback.message.edit_text(
         "ℹ️ <b>О проекте</b>\n\nВыберите раздел:",
         parse_mode="HTML",
@@ -35,7 +47,8 @@ async def show_about_project(callback):
 
 
 @router.callback_query(F.data == "about_me")
-async def show_about_me(callback):
+async def show_about_me(callback, state: FSMContext):
+    await state.clear()
     await callback.message.edit_text(
         "Привет! 👋\n\n"
         "Меня зовут Никита, и я начинающий разработчик, который давно любит Формулу 1.\n\n"
@@ -53,17 +66,81 @@ async def show_about_me(callback):
 
 
 @router.callback_query(F.data == "leave_feedback")
-async def show_leave_feedback(callback):
+async def show_leave_feedback(callback, state: FSMContext):
+    await state.set_state(Feedback.waiting_for_message)
     await callback.message.edit_text(
-        "💬 Здесь будет возможность оставить отзыв.",
+        "💬 Буду рад анонимному отзыву — отправь его, пожалуйста, одним сообщением.\n\n"
+        "Расскажи, что тебе нравится, что можно улучшить, "
+        "что работает не так или чего не хватает.\n\n"
+        "Буду очень благодарен за обратную связь! 💙",
         parse_mode="HTML",
-        reply_markup=get_back_to_about_project_keyboard()
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[])
+    )
+    await callback.message.answer(
+        "Чтобы отменить ввод отзыва, нажми кнопку ниже.",
+        reply_markup=get_feedback_menu()
     )
     await callback.answer()
 
 
+@router.message(
+    Feedback.waiting_for_message,
+    F.text == MainMenuButtons.CANCEL_FEEDBACK
+)
+async def cancel_feedback_message(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        "Отзыв не отправлен.",
+        reply_markup=get_main_menu()
+    )
+
+
+@router.message(Feedback.waiting_for_message)
+async def receive_feedback(message: Message, state: FSMContext, bot: Bot):
+    feedback_text = (message.text or "").strip()
+    if not feedback_text:
+        await message.answer(
+            "Пожалуйста, отправь отзыв текстом. Чтобы выйти, нажми «Отменить отзыв»."
+        )
+        return
+
+    if len(feedback_text) > 3900:
+        await message.answer(
+            "Отзыв слишком длинный. Сократи его до 3900 символов и отправь ещё раз."
+        )
+        return
+
+    if not settings.FEEDBACK_CHANNEL_ID:
+        logger.error("FEEDBACK_CHANNEL_ID не настроен; отзыв не отправлен.")
+        await state.clear()
+        await message.answer(
+            "Сейчас не удалось отправить отзыв. Попробуй позже.",
+            reply_markup=get_main_menu()
+        )
+        return
+
+    try:
+        await bot.send_message(
+            chat_id=settings.FEEDBACK_CHANNEL_ID,
+            text=f"\n\n✅ Новый отзыв\n\n{feedback_text}"
+        )
+    except TelegramAPIError:
+        logger.exception("Не удалось отправить отзыв в канал обратной связи.")
+        await message.answer(
+            "Не удалось отправить отзыв. Попробуй ещё раз или нажми «Отменить отзыв»."
+        )
+        return
+
+    await state.clear()
+    await message.answer(
+        "Спасибо за отзыв! 💙",
+        reply_markup=get_main_menu()
+    )
+
+
 @router.callback_query(F.data == "support_project")
-async def show_support_project(callback):
+async def show_support_project(callback, state: FSMContext):
+    await state.clear()
     await callback.message.edit_text(
         "💛 Здесь появится информация о том, как поддержать проект.",
         parse_mode="HTML",
@@ -73,7 +150,8 @@ async def show_support_project(callback):
 
 
 @router.callback_query(F.data == "settings_back")
-async def back_to_settings(callback):
+async def back_to_settings(callback, state: FSMContext):
+    await state.clear()
     await callback.message.edit_text(
         "⚙️ **Настройки**\n\nВыберите параметр для настройки:",
         parse_mode="Markdown",
