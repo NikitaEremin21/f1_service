@@ -7,3 +7,7 @@ class SettingsCity(StatesGroup):
 
 class Feedback(StatesGroup):
     waiting_for_message = State()
+
+
+class SupportStars(StatesGroup):
+    waiting_for_amount = State()

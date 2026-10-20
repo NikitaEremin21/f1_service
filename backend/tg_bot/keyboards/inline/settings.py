@@ -65,3 +65,60 @@ def get_back_to_about_project_keyboard():
         )
     )
     return builder.as_markup()
+
+
+def get_support_stars_keyboard():
+    builder = InlineKeyboardBuilder()
+    for amount in (10, 30, 50, 100, 200, 500):
+        builder.button(
+            text=f"{amount} ⭐",
+            callback_data=f"support_stars:{amount}"
+        )
+    builder.button(
+        text="Другая сумма",
+        callback_data="support_custom_amount"
+    )
+    builder.button(
+        text="Назад",
+        callback_data="about_project"
+    )
+    builder.adjust(3, 3, 1, 1)
+    return builder.as_markup()
+
+
+def get_support_methods_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="⭐ Telegram Stars",
+        callback_data="support_stars_menu"
+    )
+    builder.button(
+        text="Назад",
+        callback_data="about_project"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_cancel_support_amount_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Отменить",
+        callback_data="support_amount_cancel"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def get_support_invoice_keyboard(amount: int):
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text=f"Заплатить ⭐ {amount}",
+        pay=True
+    )
+    builder.button(
+        text="Отменить",
+        callback_data="support_invoice_cancel"
+    )
+    builder.adjust(1)
+    return builder.as_markup()
