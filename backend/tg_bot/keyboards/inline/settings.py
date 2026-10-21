@@ -89,6 +89,10 @@ def get_support_stars_keyboard():
 def get_support_methods_keyboard():
     builder = InlineKeyboardBuilder()
     builder.button(
+        text="💸 DonationAlerts",
+        url="https://www.donationalerts.com/r/nikita_21e"
+    )
+    builder.button(
         text="⭐ Telegram Stars",
         callback_data="support_stars_menu"
     )
