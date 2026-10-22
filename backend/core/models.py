@@ -117,14 +117,11 @@ class UserSessionSubscription(models.Model):
             (120, '120 минут'),
             (60, '60 минут'),
             (30, '30 минут'),
-            (20, '20 минут'),
-            (15, '15 минут'),
-            (10, '10 минут'),
         ]
     )
 
     class Meta:
-        unique_together = [('user', 'session_type', 'reminder_time')]
+        unique_together = [('user', 'session_type')]
         indexes = [
             models.Index(fields=['session_type']),
             models.Index(fields=['user']),
