@@ -13,7 +13,8 @@ async def render_notifications_keyboard(target, state, enabled_sessions, enabled
     )
     text = (
         "🔔 <b>Настройка напоминаний</b>\n\n"
-        "Выберите, о каких событиях и за сколько времени присылать уведомления."
+        "Выберите сессии и один интервал напоминания. "
+        "Для каждой выбранной сессии придёт одно уведомление."
     )
     keyboard = get_notifications_keyboard(enabled_sessions, enabled_reminders)
 

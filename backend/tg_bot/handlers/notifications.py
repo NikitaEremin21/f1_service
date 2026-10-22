@@ -74,11 +74,9 @@ async def handle_notification_action(callback, state):
         else:
             value_int = int(value)
             if new_enabled:
-                if value_int not in enabled_reminders:
-                    enabled_reminders.append(value_int)
+                enabled_reminders = [value_int]
             else:
-                if value_int in enabled_reminders:
-                    enabled_reminders.remove(value_int)
+                enabled_reminders = []
 
         result = await backend_client.sync_notifications(
             callback.from_user.id,

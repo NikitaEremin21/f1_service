@@ -128,11 +128,15 @@ async def sync_notifications_api(request, telegram_id: int, data: SyncNotificati
     invalid_sessions = [s for s in data.enabled_sessions if s not in valid_sessions]
     if invalid_sessions:
         raise HttpError(400, f"Недопустимые типы сессий: {invalid_sessions}")
+    if len(data.enabled_sessions) != len(set(data.enabled_sessions)):
+        raise HttpError(400, "Типы сессий не должны повторяться")
     
-    valid_reminders = [120, 60, 30, 20, 15, 10]
+    valid_reminders = [120, 60, 30]
     invalid_reminders = [r for r in data.enabled_reminders if r not in valid_reminders]
     if invalid_reminders:
         raise HttpError(400, f"Недопустимые интервалы: {invalid_reminders}")
+    if len(data.enabled_reminders) > 1:
+        raise HttpError(400, "Можно выбрать только один интервал напоминания")
     
     # Удаляем старые подписки
     await delete_all_subscriptions(user)
@@ -167,11 +171,11 @@ async def update_notifications_api(request, telegram_id, data: NotificationSetti
             enabled_sessions.discard(value)
     else:
         value = int(data.value)
-        valid_reminders = [120, 60, 30, 20, 15, 10]
+        valid_reminders = [120, 60, 30]
         if value not in valid_reminders:
             raise HttpError(400, f"Недопустимое время напоминания: {value}")
         if data.enabled:
-            enabled_reminders.add(value)
+            enabled_reminders = {value}
         else:
             enabled_reminders.discard(value)
     
