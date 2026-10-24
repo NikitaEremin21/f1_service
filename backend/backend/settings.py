@@ -119,6 +119,17 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))
 REDIS_TTL = int(os.getenv('REDIS_TTL', 7200))
 
+SERVICE_HEARTBEAT_URL = os.getenv("SERVICE_HEARTBEAT_URL")
+SERVICE_HEARTBEAT_INTERVAL_SECONDS = int(
+    os.getenv("SERVICE_HEARTBEAT_INTERVAL_SECONDS", 60)
+)
+MONITORING_BACKEND_HEALTH_URL = os.getenv(
+    "MONITORING_BACKEND_HEALTH_URL",
+    "http://localhost:8000/health/" if DEBUG else "http://backend:8000/health/",
+)
+if SERVICE_HEARTBEAT_INTERVAL_SECONDS < 1:
+    raise ValueError("SERVICE_HEARTBEAT_INTERVAL_SECONDS must be a positive integer")
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
